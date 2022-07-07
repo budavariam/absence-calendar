@@ -14,7 +14,7 @@ export function MemberSelector({ members, selectedMembers, dispatch }) {
     const [checked, setChecked] = React.useState([0]);
 
     const handleToggle = (value) => () => {
-        dispatch({type: DISPATCH_ACTION.CHECK_MEMBER, value: value})
+        dispatch({ type: DISPATCH_ACTION.CHECK_MEMBER, value: value })
     };
 
     const [name, setName] = React.useState('');
@@ -34,9 +34,10 @@ export function MemberSelector({ members, selectedMembers, dispatch }) {
             <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
                 {members.filter((member) => {
                     if (name.length <= 3) {
+                        // do not change selection under 3 letters
                         return true
                     }
-                    return member.indexOf(name) > -1
+                    return member.toLocaleLowerCase().indexOf(name.toLocaleLowerCase()) > -1
                 }).map((value) => {
                     const labelId = `checkbox-list-label-${value}`;
                     return (
