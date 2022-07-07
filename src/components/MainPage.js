@@ -3,8 +3,8 @@ import './MainPage.css';
 
 import { Calendar } from './Calendar';
 import { MemberSelector } from './MemberSelector';
-import { events } from '../utils/member';
-import { allNames } from '../utils/data';
+import { calculateEvents, events } from '../utils/member';
+import { allNames, data } from '../utils/data';
 import { DISPATCH_ACTION } from '../utils/constants';
 
 const mainReducerFn = (state, action) => {
@@ -34,9 +34,14 @@ const persistedSelection = JSON.parse(persistedMembers)
 
 export const MainPage = () => {
     const [state, dispatch] = useReducer(mainReducerFn, {
-        events: events,
-        allMemberName: allNames,
-        selectedMembers: new Set(persistedSelection),
+
+    }, () => {
+        const selectedMembers = new Set(persistedSelection)
+        return {
+            events: calculateEvents(data, selectedMembers),
+            allMemberName: allNames,
+            selectedMembers: selectedMembers,
+        }
     })
 
     useEffect(() => {

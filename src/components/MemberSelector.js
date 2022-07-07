@@ -11,8 +11,6 @@ import TextField from '@mui/material/TextField';
 import { DISPATCH_ACTION } from '../utils/constants';
 
 export function MemberSelector({ members, selectedMembers, dispatch }) {
-    const [checked, setChecked] = React.useState([0]);
-
     const handleToggle = (value) => () => {
         dispatch({ type: DISPATCH_ACTION.CHECK_MEMBER, value: value })
     };
@@ -44,8 +42,7 @@ export function MemberSelector({ members, selectedMembers, dispatch }) {
                         <ListItem
                             key={value}
                             secondaryAction={
-                                <IconButton edge="end" aria-label="comments">
-                                </IconButton>
+                                <IconButton edge="end" aria-label="comments" />
                             }
                             disablePadding
                         >

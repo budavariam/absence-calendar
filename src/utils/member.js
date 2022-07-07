@@ -1,5 +1,5 @@
 import distinctColors from 'distinct-colors'
-import { selectedNames, data, postFix, formatName } from "./data";
+import { selectedNames, data, postFix, formatName, allNames } from "./data";
 import { anonymize, anonymous } from "../utils/anonymous";
 
 // const res = data.reduce((acc, curr) => {
@@ -14,40 +14,44 @@ import { anonymize, anonymous } from "../utils/anonymous";
 //   return acc
 // })
 
-const palette = distinctColors({
-    count: selectedNames.length,
-})
-
-export const memberInfo = selectedNames.reduce((acc, memberName) => {
-    if (!acc.hasOwnProperty(memberName)) {
-        acc[memberName] = []
-    }
-    acc[memberName] = {
-        color: palette.pop() || 'black',
-        anonNick: anonymous.pop() || 'anonymous',
-    }
-    return acc
-}, {})
 
 
-const interested = new Set(selectedNames)
 
-export const events = data.map((curr) => {
-    const name = formatName(curr.who)
-    if (!interested.has(name)) {
-        return {
-            title: "",
-            start: "",
-            end: "",
-            valid: false,
+export const calculateEvents = (eventData, selectedMembers) => {
+    debugger
+    const palette = distinctColors({
+        count: allNames.length,
+    })
+
+    const memberInfo = [...selectedMembers].reduce((acc, memberName) => {
+        if (!acc.hasOwnProperty(memberName)) {
+            acc[memberName] = []
         }
-    }
-    console.log(curr, name)
-    return {
-        title: anonymize ? memberInfo[name].anonNick : name,
-        start: curr.start,
-        end: curr.end,
-        color: memberInfo[name].color,
-        valid: true,
-    }
-})
+        acc[memberName] = {
+            color: palette.pop() || 'black',
+            anonNick: anonymous.pop() || 'anonymous',
+        }
+        return acc
+    }, {})
+
+
+    return eventData.map((curr) => {
+        const name = formatName(curr.who)
+        if (!selectedMembers.has(name)) {
+            return {
+                title: "",
+                start: "",
+                end: "",
+                valid: false,
+            }
+        }
+        console.log(curr, name)
+        return {
+            title: anonymize ? memberInfo[name].anonNick : name,
+            start: curr.start,
+            end: curr.end,
+            color: memberInfo[name].color,
+            valid: true,
+        }
+    })
+}
