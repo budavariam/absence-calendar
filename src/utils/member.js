@@ -1,21 +1,6 @@
 import distinctColors from 'distinct-colors'
-import { selectedNames, data, postFix, formatName, allNames } from "./data";
+import { formatName, allNames } from "./data";
 import { anonymize, anonymous } from "../utils/anonymous";
-
-// const res = data.reduce((acc, curr) => {
-//   const name = curr.who.slice(0, -1 * " - OoO".length)
-//   if (!interested.has(name)) {
-//     return acc
-//   }
-//   if (!acc.hasOwnProperty(name)) {
-//       acc[name] = []
-//   }
-//   acc[name].push([curr.start, curr.end])
-//   return acc
-// })
-
-
-
 
 export const calculateEvents = (eventData, selectedMembers) => {
     debugger
@@ -45,7 +30,6 @@ export const calculateEvents = (eventData, selectedMembers) => {
                 valid: false,
             }
         }
-        console.log(curr, name)
         return {
             title: anonymize ? memberInfo[name].anonNick : name,
             start: curr.start,

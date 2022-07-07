@@ -3,7 +3,7 @@ import './MainPage.css';
 
 import { Calendar } from './Calendar';
 import { MemberSelector } from './MemberSelector';
-import { calculateEvents, events } from '../utils/member';
+import { calculateEvents } from '../utils/member';
 import { allNames, data } from '../utils/data';
 import { DISPATCH_ACTION } from '../utils/constants';
 
@@ -21,7 +21,11 @@ const mainReducerFn = (state, action) => {
             } else {
                 newSelection = new Set(state.selectedMembers).add(tgt)
             }
-            return { ...state, selectedMembers: newSelection }
+            return {
+                ...state,
+                selectedMembers: newSelection,
+                events: calculateEvents(state.rawData, newSelection),
+            }
         }
         default: {
             return state
@@ -37,8 +41,10 @@ export const MainPage = () => {
 
     }, () => {
         const selectedMembers = new Set(persistedSelection)
+        const rawData = data
         return {
-            events: calculateEvents(data, selectedMembers),
+            rawData: rawData,
+            events: calculateEvents(rawData, selectedMembers),
             allMemberName: allNames,
             selectedMembers: selectedMembers,
         }
