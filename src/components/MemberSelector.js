@@ -8,28 +8,36 @@ import ListItemText from '@mui/material/ListItemText';
 import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import TextField from '@mui/material/TextField';
+import { DISPATCH_ACTION } from '../utils/constants';
 
-export function MemberSelector({ members, dispatch }) {
+export function MemberSelector({ members, selectedMembers, dispatch }) {
     const [checked, setChecked] = React.useState([0]);
 
     const handleToggle = (value) => () => {
-        const currentIndex = checked.indexOf(value);
-        const newChecked = [...checked];
+        dispatch({type: DISPATCH_ACTION.CHECK_MEMBER, value: value})
+    };
 
-        if (currentIndex === -1) {
-            newChecked.push(value);
-        } else {
-            newChecked.splice(currentIndex, 1);
-        }
-
-        setChecked(newChecked);
+    const [name, setName] = React.useState('');
+    const handleChange = (event) => {
+        setName(event.target.value);
     };
 
     return (
         <div className='memberSelector'>
-            <TextField id="member-filter" label="Filter Members" variant="standard" />
+            <TextField
+                id="member-filter"
+                label="Filter Members"
+                variant="standard"
+                value={name}
+                onChange={handleChange}
+            />
             <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
-                {members.map((value) => {
+                {members.filter((member) => {
+                    if (name.length <= 3) {
+                        return true
+                    }
+                    return member.indexOf(name) > -1
+                }).map((value) => {
                     const labelId = `checkbox-list-label-${value}`;
                     return (
                         <ListItem
@@ -44,7 +52,7 @@ export function MemberSelector({ members, dispatch }) {
                                 <ListItemIcon>
                                     <Checkbox
                                         edge="start"
-                                        checked={checked.indexOf(value) !== -1}
+                                        checked={selectedMembers.has(value)}
                                         tabIndex={-1}
                                         disableRipple
                                         inputProps={{ 'aria-labelledby': labelId }}

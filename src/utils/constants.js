@@ -1,0 +1,3 @@
+export const DISPATCH_ACTION = {
+    "CHECK_MEMBER": "CHECK_MEMBER"
+}
