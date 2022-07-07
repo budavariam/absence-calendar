@@ -151,3 +151,5 @@ export const anonymous = [
     "Mewtwo",
     "Mew"
 ].sort(() => Math.random() - 0.5)
+
+export const anonymize = process.env.REACT_APP_ANONIMIZE || false
