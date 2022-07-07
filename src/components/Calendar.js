@@ -1,4 +1,5 @@
 import React from "react";
+import "./Calendar.css"
 
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -6,7 +7,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 
 export function Calendar({events}) {
     return (
-        <div className="App">
+        <div className="calendar">
             <FullCalendar
                 firstDay={1}
                 locale="en"

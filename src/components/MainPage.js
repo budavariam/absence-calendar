@@ -3,7 +3,8 @@ import './MainPage.css';
 
 import { Calendar } from './Calendar';
 import { MemberSelector } from './MemberSelector';
-import { events, memberInfo } from '../utils/member';
+import { events } from '../utils/member';
+import { allNames } from '../utils/data';
 
 const mainReducerFn = (state, action) => {
     return state
@@ -12,13 +13,13 @@ const mainReducerFn = (state, action) => {
 export const MainPage = () => {
     const [state, dispatch] = useReducer(mainReducerFn, {
         events: events,
-        members: memberInfo,
+        allMemberName: allNames,
     })
 
     return (
         <div className="mainPage">
             <Calendar events={state.events} />
-            <MemberSelector members={state.members} dispatch={dispatch} />
+            <MemberSelector members={state.allMemberName} dispatch={dispatch} />
         </div>
     )
 }

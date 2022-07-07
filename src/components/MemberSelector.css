@@ -1,0 +1,9 @@
+.memberSelector {
+    height: 100vh;
+    overflow: scroll;
+}
+
+#member-filter {
+    position: sticky;
+    top: 0;
+}

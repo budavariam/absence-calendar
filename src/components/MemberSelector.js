@@ -1,4 +1,5 @@
 import * as React from 'react';
+import "./MemberSelector.css"
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -26,11 +27,10 @@ export function MemberSelector({ members, dispatch }) {
 
     return (
         <div className='memberSelector'>
-            <TextField id="standard-basic" label="Standard" variant="standard" />
+            <TextField id="member-filter" label="Filter Members" variant="standard" />
             <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
-                {[0, 1, 2, 3].map((value) => {
+                {members.map((value) => {
                     const labelId = `checkbox-list-label-${value}`;
-
                     return (
                         <ListItem
                             key={value}
@@ -50,7 +50,7 @@ export function MemberSelector({ members, dispatch }) {
                                         inputProps={{ 'aria-labelledby': labelId }}
                                     />
                                 </ListItemIcon>
-                                <ListItemText id={labelId} primary={`Line item ${value + 1}`} />
+                                <ListItemText id={labelId} primary={value} />
                             </ListItemButton>
                         </ListItem>
                     );
