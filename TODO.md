@@ -11,3 +11,4 @@
 - [ ] clear all
 - [ ] make it mobilie friendly
 - [ ] deploy to GH Pages
+- [ ] move calendar controls out of the component
