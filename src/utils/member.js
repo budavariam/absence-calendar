@@ -3,7 +3,6 @@ import { formatName, allNames } from "./data";
 import { anonymize, anonymous } from "../utils/anonymous";
 
 export const calculateEvents = (eventData, selectedMembers) => {
-    debugger
     const palette = distinctColors({
         count: allNames.length,
     })
