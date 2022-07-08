@@ -1,10 +1,11 @@
 import distinctColors from 'distinct-colors'
-import { formatName, allNames } from "./data";
-import { anonymize, anonymous } from "../utils/anonymous";
 
-export const calculateEvents = (eventData, selectedMembers) => {
+export const junk = " - OoO"
+export const formatName = (memberName) => memberName.replace(junk, "")
+
+export const calculateEvents = (eventData, allMembers, selectedMembers) => {
     const palette = distinctColors({
-        count: allNames.length,
+        count: allMembers.length,
     })
 
     const memberInfo = [...selectedMembers].reduce((acc, memberName) => {
@@ -13,11 +14,10 @@ export const calculateEvents = (eventData, selectedMembers) => {
         }
         acc[memberName] = {
             color: palette.pop() || 'black',
-            anonNick: anonymous.pop() || 'anonymous',
         }
         return acc
     }, {})
-
+    // console.log("calculateEvents", eventData)
 
     return eventData.map((curr) => {
         const name = formatName(curr.who)
@@ -30,11 +30,17 @@ export const calculateEvents = (eventData, selectedMembers) => {
             }
         }
         return {
-            title: anonymize ? memberInfo[name].anonNick : name,
+            title: name,
             start: curr.start,
             end: curr.end,
             color: memberInfo[name].color,
             valid: true,
         }
-    })
+    }).filter(m => m.valid)
+}
+
+export const calculateMembers = (eventData) => {
+    return [...new Set(eventData.map((event) => {
+        return formatName(event.who)
+    }))].sort((a, b) => a.localeCompare(b))
 }

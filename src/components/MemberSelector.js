@@ -12,7 +12,7 @@ import TextField from '@mui/material/TextField';
 import { DISPATCH_ACTION } from '../utils/constants';
 
 function renderRow(props) {
-    console.log("row", props)
+    // console.log("row", props)
     const { index, style, data } = props;
     const value = data.filteredMembers[index]
     const labelId = `checkbox-list-label-${value}`;

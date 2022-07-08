@@ -3,8 +3,7 @@ import './MainPage.css';
 
 import { Calendar } from './Calendar';
 import { MemberSelector } from './MemberSelector';
-import { calculateEvents } from '../utils/member';
-import { allNames, data } from '../utils/data';
+import { calculateEvents, calculateMembers } from '../utils/member';
 import { DISPATCH_ACTION } from '../utils/constants';
 import { EventData } from './EventData';
 
@@ -25,8 +24,29 @@ const mainReducerFn = (state, action) => {
             return {
                 ...state,
                 selectedMembers: newSelection,
-                events: calculateEvents(state.rawData, newSelection),
+                events: calculateEvents(
+                    state.rawData,
+                    state.allMemberName,
+                    newSelection
+                ),
             }
+        }
+        case DISPATCH_ACTION.UPDATE_EVENT: {
+            const value = action.value
+            try {
+                const updatedEventObj = JSON.parse(value)
+                const allMemberName = calculateMembers(updatedEventObj)
+                return {
+                    ...state,
+                    rawData: updatedEventObj,
+                    allMemberName: allMemberName,
+                    events: calculateEvents(updatedEventObj, allMemberName, state.selectedMembers)
+                }
+
+            } catch (err) {
+                console.error("Failed to parse events", err)
+            }
+            return state
         }
         default: {
             return state
@@ -38,15 +58,21 @@ const persistedMembers = window.localStorage.getItem("selectedMembers") || "[]"
 const persistedSelection = JSON.parse(persistedMembers)
 
 export const MainPage = () => {
-    const [state, dispatch] = useReducer(mainReducerFn, {
-
-    }, () => {
+    const [state, dispatch] = useReducer(mainReducerFn, {}, () => {
         const selectedMembers = new Set(persistedSelection)
-        const rawData = data
+        const eventDataStr = window.localStorage.getItem("rawEventData") || "[]"
+        let rawEventData = []
+        try {
+            rawEventData = JSON.parse(eventDataStr)
+        } catch (err) {
+            console.error("Failed to load rawEventData", err)
+        }
+        const allMemberName = calculateMembers(rawEventData)
+
         return {
-            rawData: rawData,
-            events: calculateEvents(rawData, selectedMembers),
-            allMemberName: allNames,
+            rawData: rawEventData,
+            events: calculateEvents(rawEventData, allMemberName, selectedMembers),
+            allMemberName: allMemberName,
             selectedMembers: selectedMembers,
         }
     })
@@ -55,6 +81,7 @@ export const MainPage = () => {
         window.localStorage.setItem("selectedMembers", JSON.stringify([...state.selectedMembers]))
     }, [state.selectedMembers])
 
+    // console.log("RENDER APP", state)
     return (
         <div className="mainPage">
             <Calendar
@@ -64,7 +91,7 @@ export const MainPage = () => {
                 members={state.allMemberName}
                 dispatch={dispatch}
                 selectedMembers={state.selectedMembers} />
-            <EventData />
+            <EventData dispatch={dispatch} />
         </div>
     )
 }
