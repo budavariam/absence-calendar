@@ -8,7 +8,7 @@
 - [x] virtualize user selection list
 - [ ] member input list from textbox
 - [ ] select all
-- [ ] show only selected
+- [x] show only selected
 - [ ] clear all
-- [ ] make it mobilie friendly
+- [ ] make it mobile friendly
 - [ ] move calendar controls out of the component

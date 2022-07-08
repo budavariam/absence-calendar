@@ -8,8 +8,13 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
-import TextField from '@mui/material/TextField';
 import { DISPATCH_ACTION } from '../utils/constants';
+import Input from '@mui/material/Input';
+import InputLabel from '@mui/material/InputLabel';
+import InputAdornment from '@mui/material/InputAdornment';
+import FormControl from '@mui/material/FormControl';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
 
 function renderRow(props) {
     // console.log("row", props)
@@ -46,29 +51,54 @@ export function MemberSelector({ members, selectedMembers, dispatch }) {
         dispatch({ type: DISPATCH_ACTION.CHECK_MEMBER, value: value })
     };
 
-    const [name, setName] = useState('');
+    const [filterByName, setName] = useState('');
+    const [showOnlySelected, setShowOnlySelected] = useState(false);
     const handleChange = (event) => {
         setName(event.target.value);
     };
 
     const filteredMembers = useMemo(() => members.filter((member) => {
-        if (name.length <= 3) {
+        if (!showOnlySelected && filterByName.length < 3) {
             // do not change selection under 3 letters
             return true
         }
-        return member.toLocaleLowerCase().indexOf(name.toLocaleLowerCase()) > -1
-    }), [members, name])
+        const searchFoundUser = member.toLocaleLowerCase().indexOf(filterByName.toLocaleLowerCase()) > -1
+        if (showOnlySelected) {
+            return selectedMembers.has(member) && searchFoundUser
+        }
+        return searchFoundUser
+    }), [members, filterByName, selectedMembers, showOnlySelected])
+
+    const handleClickShowMembers = () => {
+        setShowOnlySelected((prev) => !prev)
+    };
+
+    const handleMouseDownShowMembers = (event) => {
+        event.preventDefault();
+    };
 
     return (
         <div className='memberSelector'>
-            <TextField
-                fullWidth
-                id="member-filter"
-                label="Filter Members"
-                variant="standard"
-                value={name}
-                onChange={handleChange}
-            />
+            <FormControl sx={{ m: 1, width: '25ch' }} variant="standard">
+                <InputLabel htmlFor="member-filter">Member Filter</InputLabel>
+                <Input
+                    id="member-filter"
+                    type="text"
+                    value={filterByName}
+                    onChange={handleChange}
+                    endAdornment={
+                        <InputAdornment position="end">
+                            <IconButton
+                                aria-label="toggle member visibility"
+                                onClick={handleClickShowMembers}
+                                onMouseDown={handleMouseDownShowMembers}
+                            >
+                                {showOnlySelected ? <CheckBoxOutlineBlankIcon /> : <CheckBoxIcon />}
+                            </IconButton>
+                        </InputAdornment>
+                    }
+                />
+            </FormControl>
             <Box
                 sx={{
                     width: '100%',
