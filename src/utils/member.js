@@ -8,12 +8,12 @@ export const calculateEvents = (eventData, allMembers, selectedMembers) => {
         count: allMembers.length,
     })
 
-    const memberInfo = [...selectedMembers].reduce((acc, memberName) => {
+    const memberInfo = [...selectedMembers].reduce((acc, memberName, i) => {
         if (!acc.hasOwnProperty(memberName)) {
             acc[memberName] = []
         }
         acc[memberName] = {
-            color: palette.pop() || 'black',
+            color: palette[i],
         }
         return acc
     }, {})
