@@ -1,4 +1,4 @@
 .memberSelector {
-    height: 100vh;
     overflow: scroll;
+    grid-area: 1 / 2 / 2 / 3;
 }

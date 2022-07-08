@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { FixedSizeList } from 'react-window';
 import "./MemberSelector.css"
 import Box from '@mui/material/Box';
-import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -73,15 +72,15 @@ export function MemberSelector({ members, selectedMembers, dispatch }) {
             <Box
                 sx={{
                     width: '100%',
-                    height: 400,
-                    maxWidth: 360,
+                    height: 300,
+                    maxWidth: 300,
                     bgcolor: 'background.paper',
                     border: '1px solid gray',
                 }}
             >
                 <FixedSizeList
-                    height={400}
-                    width={360}
+                    height={300}
+                    width={300}
                     itemSize={46}
                     itemCount={filteredMembers.length}
                     overscanCount={5}

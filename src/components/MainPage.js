@@ -6,6 +6,7 @@ import { MemberSelector } from './MemberSelector';
 import { calculateEvents } from '../utils/member';
 import { allNames, data } from '../utils/data';
 import { DISPATCH_ACTION } from '../utils/constants';
+import { EventData } from './EventData';
 
 const mainReducerFn = (state, action) => {
     if (!action || !action.type) {
@@ -63,6 +64,7 @@ export const MainPage = () => {
                 members={state.allMemberName}
                 dispatch={dispatch}
                 selectedMembers={state.selectedMembers} />
+            <EventData />
         </div>
     )
 }
