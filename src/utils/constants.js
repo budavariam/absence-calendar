@@ -3,3 +3,19 @@ export const DISPATCH_ACTION = {
     "UPDATE_EVENT": "UPDATE_EVENT",
 
 }
+
+export const LOCALSTORAGE_KEY = {
+    "RAWEVENTDATA": "RAWEVENTDATA",
+    "SELECTEDMEMBERS": "SELECTEDMEMBERS",
+}
+
+export const LOCALSTORAGE_DEFAULT = {
+    "RAWEVENTDATA": `[
+        {
+          "who": "John Doe",
+          "start": "2022-06-30",
+          "end": "2022-07-09"
+        }
+      ]`,
+    "SELECTEDMEMBERS": "[]",
+}

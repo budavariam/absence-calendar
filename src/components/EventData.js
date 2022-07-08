@@ -1,15 +1,15 @@
 import TextareaAutosize from '@mui/material/TextareaAutosize';
 import { useEffect, useState } from 'react';
-import { DISPATCH_ACTION } from '../utils/constants';
+import { DISPATCH_ACTION, LOCALSTORAGE_DEFAULT, LOCALSTORAGE_KEY } from '../utils/constants';
 import "./EventData.css"
 
 export const EventData = ({ dispatch }) => {
     const [rawEventData, setRawEventData] = useState(() => {
-        return window.localStorage.getItem("rawEventData") || "[]"
+        return window.localStorage.getItem(LOCALSTORAGE_KEY.RAWEVENTDATA) || LOCALSTORAGE_DEFAULT.RAWEVENTDATA
     })
 
     useEffect(() => {
-        window.localStorage.setItem("rawEventData", rawEventData)
+        window.localStorage.setItem(LOCALSTORAGE_KEY.RAWEVENTDATA, rawEventData)
     }, [rawEventData])
 
     return <div className="eventData">

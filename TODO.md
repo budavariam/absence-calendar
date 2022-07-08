@@ -1,14 +1,14 @@
 # TODO
 
-- [ ] add mock data
-- [ ] get events from calendar API
-- [ ] get events from file/input
-- [ ] anonimize data
+- [ ] deploy to GH Pages
+- [ ] write how to get events from calendar API
+- [x] add mock data
+- [x] get events from file/input
 - [x] keep search on top
 - [x] virtualize user selection list
-- [ ] input list from textbox
+- [ ] member input list from textbox
 - [ ] select all
+- [ ] show only selected
 - [ ] clear all
 - [ ] make it mobilie friendly
-- [ ] deploy to GH Pages
 - [ ] move calendar controls out of the component

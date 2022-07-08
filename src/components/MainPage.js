@@ -4,7 +4,7 @@ import './MainPage.css';
 import { Calendar } from './Calendar';
 import { MemberSelector } from './MemberSelector';
 import { calculateEvents, calculateMembers } from '../utils/member';
-import { DISPATCH_ACTION } from '../utils/constants';
+import { DISPATCH_ACTION, LOCALSTORAGE_DEFAULT, LOCALSTORAGE_KEY } from '../utils/constants';
 import { EventData } from './EventData';
 
 const mainReducerFn = (state, action) => {
@@ -54,13 +54,13 @@ const mainReducerFn = (state, action) => {
     }
 }
 
-const persistedMembers = window.localStorage.getItem("selectedMembers") || "[]"
+const persistedMembers = window.localStorage.getItem(LOCALSTORAGE_KEY.SELECTEDMEMBERS) || LOCALSTORAGE_DEFAULT.SELECTEDMEMBERS
 const persistedSelection = JSON.parse(persistedMembers)
 
 export const MainPage = () => {
     const [state, dispatch] = useReducer(mainReducerFn, {}, () => {
         const selectedMembers = new Set(persistedSelection)
-        const eventDataStr = window.localStorage.getItem("rawEventData") || "[]"
+        const eventDataStr = window.localStorage.getItem(LOCALSTORAGE_KEY.RAWEVENTDATA) || LOCALSTORAGE_DEFAULT.RAWEVENTDATA
         let rawEventData = []
         try {
             rawEventData = JSON.parse(eventDataStr)
@@ -78,7 +78,7 @@ export const MainPage = () => {
     })
 
     useEffect(() => {
-        window.localStorage.setItem("selectedMembers", JSON.stringify([...state.selectedMembers]))
+        window.localStorage.setItem(LOCALSTORAGE_KEY.SELECTEDMEMBERS, JSON.stringify([...state.selectedMembers]))
     }, [state.selectedMembers])
 
     // console.log("RENDER APP", state)
