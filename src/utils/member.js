@@ -1,4 +1,5 @@
 import distinctColors from 'distinct-colors'
+// import chroma from "chroma-js";
 
 export const junk = " - OoO"
 export const formatName = (memberName) => memberName.replace(junk, "")
@@ -30,10 +31,12 @@ export const calculateEvents = (eventData, allMembers, selectedMembers) => {
             }
         }
         return {
+            // more info: https://fullcalendar.io/docs/v3/event-object
             title: name,
             start: curr.start,
             end: curr.end,
             color: memberInfo[name].color,
+            textColor: 'white', // TODO: chroma get mathing color
             valid: true,
         }
     }).filter(m => m.valid)
