@@ -10,7 +10,8 @@ export const calculateEvents = (eventData, allMembers, selectedMembers) => {
         lightMax: 70,
     })
 
-    const memberInfo = [...selectedMembers].reduce((acc, memberName, i) => {
+    // NOTE: it could be calculated when generating the allMembers list
+    const memberInfo = allMembers.reduce((acc, memberName, i) => {
         if (!acc.hasOwnProperty(memberName)) {
             acc[memberName] = []
         }
