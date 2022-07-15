@@ -9,17 +9,24 @@ export const LOCALSTORAGE_KEY = {
     "SELECTEDMEMBERS": "SELECTEDMEMBERS",
 }
 
+
+function generateDate(addToCurrentMonth = 0, setDay = 1) {
+  const now = new Date();
+  const generatedDate = new Date(now.getFullYear(), now.getMonth()+addToCurrentMonth, setDay);
+  return generatedDate.toISOString().split('T')[0]
+}
+
 export const LOCALSTORAGE_DEFAULT = {
     "RAWEVENTDATA": `[
         {
           "who": "John Doe",
-          "start": "2022-06-30",
-          "end": "2022-07-09"
+          "start": "${generateDate(0, 25)}",
+          "end": "${generateDate(1, 3)}"
         },
         {
           "who": "Jane Doe",
-          "start": "2022-07-05",
-          "end": "2022-07-13"
+          "start": "${generateDate(1, 2)}",
+          "end": "${generateDate(1, 13)}"
         }
       ]`,
     "SELECTEDMEMBERS": "[]",

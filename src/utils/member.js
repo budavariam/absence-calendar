@@ -19,7 +19,6 @@ export const calculateEvents = (eventData, allMembers, selectedMembers) => {
         }
         return acc
     }, {})
-    // console.log("calculateEvents", eventData)
 
     return eventData.map((curr) => {
         const name = formatName(curr.who)

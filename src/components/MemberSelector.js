@@ -89,7 +89,8 @@ export function MemberSelector({ members, selectedMembers, dispatch }) {
                     endAdornment={
                         <InputAdornment position="end">
                             <IconButton
-                                aria-label="toggle member visibility"
+                                title="Toggle member visibility"
+                                aria-label="Toggle member visibility"
                                 onClick={handleClickShowMembers}
                                 onMouseDown={handleMouseDownShowMembers}
                             >
