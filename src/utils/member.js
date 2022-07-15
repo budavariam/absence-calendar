@@ -7,6 +7,7 @@ export const formatName = (memberName) => memberName.replace(junk, "")
 export const calculateEvents = (eventData, allMembers, selectedMembers) => {
     const palette = distinctColors({
         count: allMembers.length,
+        lightMax: 70,
     })
 
     const memberInfo = [...selectedMembers].reduce((acc, memberName, i) => {
