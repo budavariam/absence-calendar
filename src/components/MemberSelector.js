@@ -23,6 +23,13 @@ function renderRow(props) {
     const { index, style, data } = props;
     const value = data.filteredMembers[index]
     const labelId = `checkbox-list-label-${value}`;
+    let checkboxStyle = {}
+    try {
+        const lineColor = data.memberInfo[value].color.hex()
+        checkboxStyle = {color: lineColor}
+    } catch (err) {
+        console.warn("missing color for line", data, err)
+    }
     return (
         <ListItem
             style={style}
@@ -35,6 +42,7 @@ function renderRow(props) {
             <ListItemButton role={undefined} onClick={data.handleToggle(value)} dense>
                 <ListItemIcon>
                     <Checkbox
+                        style={checkboxStyle}
                         edge="start"
                         checked={data.selectedMembers.has(value)}
                         tabIndex={-1}
@@ -48,7 +56,7 @@ function renderRow(props) {
     );
 }
 
-export function MemberSelector({ members, selectedMembers, favourites, dispatch }) {
+export function MemberSelector({ members, selectedMembers, favourites, memberInfo, dispatch }) {
     const handleToggle = (value) => () => {
         dispatch({ type: DISPATCH_ACTION.CHECK_MEMBER, value: value })
     };
@@ -132,6 +140,7 @@ export function MemberSelector({ members, selectedMembers, favourites, dispatch 
                         handleToggle: handleToggle,
                         filteredMembers: filteredMembers,
                         selectedMembers: selectedMembers,
+                        memberInfo: memberInfo,
                     }}
                 >
                     {renderRow}
