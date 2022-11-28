@@ -14,3 +14,4 @@
 - [x] keep search on top
 - [x] virtualize user selection list
 - [x] show only selected
+- [x] implement anonymization for Demo purposes

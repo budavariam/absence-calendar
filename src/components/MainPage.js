@@ -7,6 +7,7 @@ import { calculateEvents, calculateMemberInfo, calculateMembers } from '../utils
 import { DISPATCH_ACTION, LOCALSTORAGE_DEFAULT, LOCALSTORAGE_KEY } from '../utils/constants';
 import { EventData } from './EventData';
 import { FavouritesData } from './FavouritesData';
+import { anonimizeNames, anonymizeEvents } from '../utils/anonymous';
 
 const mainReducerFn = (state, action) => {
     if (!action || !action.type) {
@@ -34,7 +35,7 @@ const mainReducerFn = (state, action) => {
         }
         case DISPATCH_ACTION.UPDATE_FAVOURITES: {
             try {
-                const tgt = JSON.parse(action.value)
+                const tgt = anonimizeNames(JSON.parse(action.value), state.anonMapping)
                 let favourites = new Set(tgt)
                 return {
                     ...state,
@@ -48,7 +49,7 @@ const mainReducerFn = (state, action) => {
         case DISPATCH_ACTION.UPDATE_EVENT: {
             const value = action.value
             try {
-                const updatedEventObj = JSON.parse(value)
+                const updatedEventObj = anonymizeEvents(JSON.parse(value))
                 const allMemberName = calculateMembers(updatedEventObj)
                 const memberInfo = calculateMemberInfo(allMemberName)
                 return {
@@ -78,8 +79,11 @@ export const MainPage = () => {
         const selectedMembers = new Set(persistedSelection)
         const eventDataStr = window.localStorage.getItem(LOCALSTORAGE_KEY.RAWEVENTDATA) || LOCALSTORAGE_DEFAULT.RAWEVENTDATA
         let rawEventData = []
+        let rawAnonMapping = {}
         try {
-            rawEventData = JSON.parse(eventDataStr)
+            let { events, anonMapping } = anonymizeEvents(JSON.parse(eventDataStr))
+            rawEventData = events
+            rawAnonMapping = anonMapping
         } catch (err) {
             console.error("Failed to load rawEventData", err)
         }
@@ -88,7 +92,7 @@ export const MainPage = () => {
         let favourites = new Set()
         const favouritesStr = window.localStorage.getItem(LOCALSTORAGE_KEY.FAVOURITE_MEMBERS) || LOCALSTORAGE_DEFAULT.FAVOURITE_MEMBERS
         try {
-            const rawFavouritesData = JSON.parse(favouritesStr)
+            const rawFavouritesData = anonimizeNames(JSON.parse(favouritesStr), rawAnonMapping)
             favourites = new Set(rawFavouritesData)
         } catch (err) {
             console.error("Failed to load favouritesData", err)
@@ -101,6 +105,7 @@ export const MainPage = () => {
             allMemberName: allMemberName,
             selectedMembers: selectedMembers,
             favourites: favourites,
+            anonMapping: rawAnonMapping,
         }
     })
 
