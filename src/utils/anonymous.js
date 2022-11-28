@@ -1,3 +1,5 @@
+import { calculateMembers, formatName } from "./member"
+
 export const anonymous = [
     "Bulbasaur",
     "Ivysaur",
@@ -752,3 +754,31 @@ export const anonymous = [
 ].sort(() => Math.random() - 0.5)
 
 export const anonymize = process.env.REACT_APP_ANONIMIZE || false
+
+export const anonymizeEvents = (events) => {
+    if (!anonymize) {
+        return events
+    }
+    const anonTeam = {}
+    const anonPool = [...anonymous]
+    const allNames = calculateMembers(events)
+    allNames.forEach((memberName) => {
+        anonTeam[memberName] = anonPool.pop() || 'anonymous' + (+new Date() + Math.floor(Math.random() * 10000))
+    })
+
+    return {
+        events: events.map(e => {
+            return { ...e, who: anonTeam[formatName(e.who)] }
+        }),
+        anonMapping: anonTeam,
+    }
+}
+
+export const anonimizeNames = (allMemberNames, anonMapping) => {
+    if (!anonymize) {
+        return allMemberNames
+    }
+    return allMemberNames.map((e) => {
+        return anonMapping[formatName(e)]
+    })
+}
