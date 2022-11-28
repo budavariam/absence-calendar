@@ -1,7 +1,7 @@
 # TODO
 
 - [x] deploy to GH Pages
-- [ ] accept member list from textbox just like with events
+- [x] accept member list from textbox just like with events
 - [ ] show member colors in the sidebar as diagram legend
 - [ ] move calendar controls out of the component or make them nicer
 - [ ] bonus: get events from calendar API

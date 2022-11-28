@@ -1,5 +1,6 @@
 export const DISPATCH_ACTION = {
     "CHECK_MEMBER": "CHECK_MEMBER",
+    "UPDATE_FAVOURITES": "UPDATE_FAVOURITES",
     "UPDATE_EVENT": "UPDATE_EVENT",
 
 }
@@ -7,6 +8,7 @@ export const DISPATCH_ACTION = {
 export const LOCALSTORAGE_KEY = {
     "RAWEVENTDATA": "RAWEVENTDATA",
     "SELECTEDMEMBERS": "SELECTEDMEMBERS",
+    "FAVOURITE_MEMBERS": "FAVOURITE_MEMBERS",
 }
 
 
@@ -35,4 +37,5 @@ export const LOCALSTORAGE_DEFAULT = {
         }
       ]`,
     "SELECTEDMEMBERS": JSON.stringify(defaultMembers),
+    "FAVOURITE_MEMBERS": JSON.stringify([]),
 }

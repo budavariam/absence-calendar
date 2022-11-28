@@ -6,6 +6,7 @@ import { MemberSelector } from './MemberSelector';
 import { calculateEvents, calculateMembers } from '../utils/member';
 import { DISPATCH_ACTION, LOCALSTORAGE_DEFAULT, LOCALSTORAGE_KEY } from '../utils/constants';
 import { EventData } from './EventData';
+import { FavouritesData } from './FavouritesData';
 
 const mainReducerFn = (state, action) => {
     if (!action || !action.type) {
@@ -30,6 +31,19 @@ const mainReducerFn = (state, action) => {
                     newSelection
                 ),
             }
+        }
+        case DISPATCH_ACTION.UPDATE_FAVOURITES: {
+            try {
+                const tgt = JSON.parse(action.value)
+                let favourites = new Set(tgt)
+                return {
+                    ...state,
+                    favourites: favourites,
+                }
+            } catch (err) {
+                console.error("Failed to update favourite members list:", action)
+            }
+            return state
         }
         case DISPATCH_ACTION.UPDATE_EVENT: {
             const value = action.value
@@ -69,11 +83,21 @@ export const MainPage = () => {
         }
         const allMemberName = calculateMembers(rawEventData)
 
+        let favourites = new Set()
+        const favouritesStr = window.localStorage.getItem(LOCALSTORAGE_KEY.FAVOURITE_MEMBERS) || LOCALSTORAGE_DEFAULT.FAVOURITE_MEMBERS
+        try {
+            const rawFavouritesData = JSON.parse(favouritesStr)
+            favourites = new Set(rawFavouritesData)
+        } catch (err) {
+            console.error("Failed to load favouritesData", err)
+        }
+
         return {
             rawData: rawEventData,
             events: calculateEvents(rawEventData, allMemberName, selectedMembers),
             allMemberName: allMemberName,
             selectedMembers: selectedMembers,
+            favourites: favourites,
         }
     })
 
@@ -87,11 +111,15 @@ export const MainPage = () => {
             <Calendar
                 events={state.events}
             />
-            <MemberSelector
-                members={state.allMemberName}
-                dispatch={dispatch}
-                selectedMembers={state.selectedMembers} />
-            <EventData dispatch={dispatch} />
+            <aside className="member-controller">
+                <MemberSelector
+                    members={state.allMemberName}
+                    dispatch={dispatch}
+                    favourites={state.favourites}
+                    selectedMembers={state.selectedMembers} />
+                <EventData dispatch={dispatch} />
+                <FavouritesData dispatch={dispatch} />
+            </aside>
         </div>
     )
 }
