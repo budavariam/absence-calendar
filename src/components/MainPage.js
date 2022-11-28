@@ -7,7 +7,7 @@ import { calculateEvents, calculateMemberInfo, calculateMembers } from '../utils
 import { DISPATCH_ACTION, LOCALSTORAGE_DEFAULT, LOCALSTORAGE_KEY } from '../utils/constants';
 import { EventData } from './EventData';
 import { FavouritesData } from './FavouritesData';
-import { anonimizeNames, anonymizeEvents } from '../utils/anonymous';
+import { anonimizeNames, anonimizeEvents } from '../utils/anonymous';
 
 const mainReducerFn = (state, action) => {
     if (!action || !action.type) {
@@ -49,7 +49,7 @@ const mainReducerFn = (state, action) => {
         case DISPATCH_ACTION.UPDATE_EVENT: {
             const value = action.value
             try {
-                const updatedEventObj = anonymizeEvents(JSON.parse(value))
+                const updatedEventObj = anonimizeEvents(JSON.parse(value))
                 const allMemberName = calculateMembers(updatedEventObj)
                 const memberInfo = calculateMemberInfo(allMemberName)
                 return {
@@ -81,7 +81,7 @@ export const MainPage = () => {
         let rawEventData = []
         let rawAnonMapping = {}
         try {
-            let { events, anonMapping } = anonymizeEvents(JSON.parse(eventDataStr))
+            let { events, anonMapping } = anonimizeEvents(JSON.parse(eventDataStr))
             rawEventData = events
             rawAnonMapping = anonMapping
         } catch (err) {

@@ -753,11 +753,14 @@ export const anonymous = [
     "Volcanion",
 ].sort(() => Math.random() - 0.5)
 
-export const anonymize = process.env.REACT_APP_ANONIMIZE || false
+export const anonimize = process.env.REACT_APP_ANONIMIZE || false
 
-export const anonymizeEvents = (events) => {
-    if (!anonymize) {
-        return events
+export const anonimizeEvents = (events) => {
+    if (!anonimize) {
+        return {
+            events: events,
+            anonMapping: {}
+        }
     }
     const anonTeam = {}
     const anonPool = [...anonymous]
@@ -775,7 +778,7 @@ export const anonymizeEvents = (events) => {
 }
 
 export const anonimizeNames = (allMemberNames, anonMapping) => {
-    if (!anonymize) {
+    if (!anonimize) {
         return allMemberNames
     }
     return allMemberNames.map((e) => {
