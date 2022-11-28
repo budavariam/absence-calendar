@@ -75,7 +75,7 @@ export function MemberSelector({ members, selectedMembers, favourites, dispatch 
         } else if (showOnlySelected && showOnlyFavourites) {
             return searchFoundUser && selectedMembers.has(member) && favourites.has(member)
         }
-        return false
+        return searchFoundUser
     }), [members, filterByName, selectedMembers, showOnlySelected, favourites, showOnlyFavourites])
 
     const handleMouseDown = (event) => {
