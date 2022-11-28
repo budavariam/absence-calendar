@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/absence-calendar/static/css/main.7a199845.css",
-    "main.js": "/absence-calendar/static/js/main.35f258e6.js",
+    "main.js": "/absence-calendar/static/js/main.c5b59edb.js",
     "static/js/787.67ab9629.chunk.js": "/absence-calendar/static/js/787.67ab9629.chunk.js",
     "index.html": "/absence-calendar/index.html",
     "main.7a199845.css.map": "/absence-calendar/static/css/main.7a199845.css.map",
-    "main.35f258e6.js.map": "/absence-calendar/static/js/main.35f258e6.js.map",
+    "main.c5b59edb.js.map": "/absence-calendar/static/js/main.c5b59edb.js.map",
     "787.67ab9629.chunk.js.map": "/absence-calendar/static/js/787.67ab9629.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.7a199845.css",
-    "static/js/main.35f258e6.js"
+    "static/js/main.c5b59edb.js"
   ]
 }
