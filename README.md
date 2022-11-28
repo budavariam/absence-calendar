@@ -8,3 +8,10 @@ and filter those events that I'm not interested in.
 ```bash
 npm run start
 ```
+
+## Work from google calendar
+
+```bash
+jq '[.items[] | {"who": .summary, "start": .start.date,  "end": .end.date}]' ~/export.json > ~/data.json
+cat ~/data.json | pbcopy
+```

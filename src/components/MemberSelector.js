@@ -15,6 +15,8 @@ import InputAdornment from '@mui/material/InputAdornment';
 import FormControl from '@mui/material/FormControl';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import Star from '@mui/icons-material/Star';
+import StarOutline from '@mui/icons-material/StarOutline';
 
 function renderRow(props) {
     // console.log("row", props)
@@ -46,34 +48,37 @@ function renderRow(props) {
     );
 }
 
-export function MemberSelector({ members, selectedMembers, dispatch }) {
+export function MemberSelector({ members, selectedMembers, favourites, dispatch }) {
     const handleToggle = (value) => () => {
         dispatch({ type: DISPATCH_ACTION.CHECK_MEMBER, value: value })
     };
 
     const [filterByName, setName] = useState('');
     const [showOnlySelected, setShowOnlySelected] = useState(false);
+    const [showOnlyFavourites, setShowOnlyFavourites] = useState(false);
     const handleChange = (event) => {
         setName(event.target.value);
     };
 
     const filteredMembers = useMemo(() => members.filter((member) => {
-        if (!showOnlySelected && filterByName.length < 3) {
+        if (!showOnlySelected && !showOnlyFavourites && filterByName.length < 3) {
             // do not change selection under 3 letters
             return true
         }
         const searchFoundUser = member.toLocaleLowerCase().indexOf(filterByName.toLocaleLowerCase()) > -1
-        if (showOnlySelected) {
-            return selectedMembers.has(member) && searchFoundUser
+
+        if (showOnlySelected && !showOnlyFavourites) {
+            return searchFoundUser && selectedMembers.has(member)
+        } else if (!showOnlySelected && showOnlyFavourites) {
+            // NOTE: intentionally do not search in favourites in this case
+            return favourites.has(member)
+        } else if (showOnlySelected && showOnlyFavourites) {
+            return searchFoundUser && selectedMembers.has(member) && favourites.has(member)
         }
-        return searchFoundUser
-    }), [members, filterByName, selectedMembers, showOnlySelected])
+        return false
+    }), [members, filterByName, selectedMembers, showOnlySelected, favourites, showOnlyFavourites])
 
-    const handleClickShowMembers = () => {
-        setShowOnlySelected((prev) => !prev)
-    };
-
-    const handleMouseDownShowMembers = (event) => {
+    const handleMouseDown = (event) => {
         event.preventDefault();
     };
 
@@ -91,10 +96,18 @@ export function MemberSelector({ members, selectedMembers, dispatch }) {
                             <IconButton
                                 title="Toggle member visibility"
                                 aria-label="Toggle member visibility"
-                                onClick={handleClickShowMembers}
-                                onMouseDown={handleMouseDownShowMembers}
+                                onClick={() => setShowOnlySelected((prev) => !prev)}
+                                onMouseDown={handleMouseDown}
                             >
-                                {showOnlySelected ? <CheckBoxOutlineBlankIcon /> : <CheckBoxIcon />}
+                                {showOnlySelected ? <CheckBoxIcon /> : <CheckBoxOutlineBlankIcon />}
+                            </IconButton>
+                            <IconButton
+                                title="Toggle favourites visibility"
+                                aria-label="Toggle favourites visibility"
+                                onClick={() => setShowOnlyFavourites((prev) => !prev)}
+                                onMouseDown={handleMouseDown}
+                            >
+                                {showOnlyFavourites ? <Star /> : <StarOutline />}
                             </IconButton>
                         </InputAdornment>
                     }
