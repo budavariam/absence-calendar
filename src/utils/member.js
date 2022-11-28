@@ -4,7 +4,7 @@ import distinctColors from 'distinct-colors'
 export const junk = " - OoO"
 export const formatName = (memberName) => memberName.replace(junk, "")
 
-export const calculateEvents = (eventData, allMembers, selectedMembers) => {
+export const calculateMemberInfo = (allMembers) => {
     const palette = distinctColors({
         count: allMembers.length,
         lightMax: 70,
@@ -20,6 +20,10 @@ export const calculateEvents = (eventData, allMembers, selectedMembers) => {
         }
         return acc
     }, {})
+    return memberInfo
+}
+
+export const calculateEvents = (eventData, memberInfo, selectedMembers) => {
 
     return eventData.map((curr) => {
         const name = formatName(curr.who)

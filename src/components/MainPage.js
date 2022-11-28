@@ -3,7 +3,7 @@ import './MainPage.css';
 
 import { Calendar } from './Calendar';
 import { MemberSelector } from './MemberSelector';
-import { calculateEvents, calculateMembers } from '../utils/member';
+import { calculateEvents, calculateMemberInfo, calculateMembers } from '../utils/member';
 import { DISPATCH_ACTION, LOCALSTORAGE_DEFAULT, LOCALSTORAGE_KEY } from '../utils/constants';
 import { EventData } from './EventData';
 import { FavouritesData } from './FavouritesData';
@@ -27,7 +27,7 @@ const mainReducerFn = (state, action) => {
                 selectedMembers: newSelection,
                 events: calculateEvents(
                     state.rawData,
-                    state.allMemberName,
+                    state.memberInfo,
                     newSelection
                 ),
             }
@@ -50,11 +50,13 @@ const mainReducerFn = (state, action) => {
             try {
                 const updatedEventObj = JSON.parse(value)
                 const allMemberName = calculateMembers(updatedEventObj)
+                const memberInfo = calculateMemberInfo(allMemberName)
                 return {
                     ...state,
                     rawData: updatedEventObj,
                     allMemberName: allMemberName,
-                    events: calculateEvents(updatedEventObj, allMemberName, state.selectedMembers)
+                    memberInfo: memberInfo,
+                    events: calculateEvents(updatedEventObj, memberInfo, state.selectedMembers)
                 }
 
             } catch (err) {
@@ -82,7 +84,7 @@ export const MainPage = () => {
             console.error("Failed to load rawEventData", err)
         }
         const allMemberName = calculateMembers(rawEventData)
-
+        const memberInfo = calculateMemberInfo(allMemberName)
         let favourites = new Set()
         const favouritesStr = window.localStorage.getItem(LOCALSTORAGE_KEY.FAVOURITE_MEMBERS) || LOCALSTORAGE_DEFAULT.FAVOURITE_MEMBERS
         try {
@@ -94,7 +96,8 @@ export const MainPage = () => {
 
         return {
             rawData: rawEventData,
-            events: calculateEvents(rawEventData, allMemberName, selectedMembers),
+            events: calculateEvents(rawEventData, memberInfo, selectedMembers),
+            memberInfo: memberInfo,
             allMemberName: allMemberName,
             selectedMembers: selectedMembers,
             favourites: favourites,
@@ -116,6 +119,7 @@ export const MainPage = () => {
                     members={state.allMemberName}
                     dispatch={dispatch}
                     favourites={state.favourites}
+                    memberInfo={state.memberInfo}
                     selectedMembers={state.selectedMembers} />
                 <EventData dispatch={dispatch} />
                 <FavouritesData dispatch={dispatch} />
