@@ -3,9 +3,12 @@ import "./Calendar.css"
 
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
-// import timeGridPlugin from "@fullcalendar/timegrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import listPlugin from "@fullcalendar/list";
+import interactionPlugin from "@fullcalendar/interaction";
+import rrulePlugin from "@fullcalendar/rrule"
 
-export function Calendar({events}) {
+export function Calendar({ events }) {
     return (
         <div className="calendar">
             <FullCalendar
@@ -19,8 +22,13 @@ export function Calendar({events}) {
                 themeSystem="Simplex"
                 initialView="dayGridMonth"
                 weekends={false}
-                plugins={[dayGridPlugin]}
+                eventTimeFormat={{ hour: 'numeric', minute: '2-digit' }}
+                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin, rrulePlugin]}
                 events={events}
+                headerToolbar={{
+                    left: 'dayGridMonth,timeGridWeek',
+                    center: 'title'
+                }}
             />
         </div>
     );
