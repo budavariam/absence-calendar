@@ -37,5 +37,5 @@ export const LOCALSTORAGE_DEFAULT = {
         }
       ]`,
     "SELECTEDMEMBERS": JSON.stringify(defaultMembers),
-    "FAVOURITE_MEMBERS": JSON.stringify([]),
+    "FAVOURITE_MEMBERS": JSON.stringify([defaultMembers[0]]),
 }
