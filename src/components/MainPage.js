@@ -80,19 +80,21 @@ export const MainPage = () => {
         const selectedMembers = new Set(persistedSelection)
         const eventDataStr = window.localStorage.getItem(LOCALSTORAGE_KEY.RAWEVENTDATA) || LOCALSTORAGE_DEFAULT.RAWEVENTDATA
         let rawEventData = []
+        let allMemberName = []
+        let memberInfo = {}
         let rawAnonMapping = {}
         try {
             let { events, anonMapping } = anonimizeEvents(JSON.parse(eventDataStr))
             rawEventData = events
             rawAnonMapping = anonMapping
+            allMemberName = calculateMembers(rawEventData)
+            memberInfo = calculateMemberInfo(allMemberName)
         } catch (err) {
             console.error("Failed to load rawEventData", err)
         }
-        const allMemberName = calculateMembers(rawEventData)
-        const memberInfo = calculateMemberInfo(allMemberName)
         let favourites = new Set()
-        const favouritesStr = window.localStorage.getItem(LOCALSTORAGE_KEY.FAVOURITE_MEMBERS) || LOCALSTORAGE_DEFAULT.FAVOURITE_MEMBERS
         try {
+            const favouritesStr = window.localStorage.getItem(LOCALSTORAGE_KEY.FAVOURITE_MEMBERS) || LOCALSTORAGE_DEFAULT.FAVOURITE_MEMBERS
             const rawFavouritesData = anonimizeNames(JSON.parse(favouritesStr), rawAnonMapping)
             favourites = new Set(rawFavouritesData)
         } catch (err) {
