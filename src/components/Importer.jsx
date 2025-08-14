@@ -11,6 +11,8 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import { DISPATCH_ACTION, LOCALSTORAGE_DEFAULT, LOCALSTORAGE_KEY } from '../utils/constants';
 import { useLocalStorageSync } from './useLocalStorageSync';
 import "./Importer.css";
@@ -35,6 +37,7 @@ export const CSVConverter = ({ dispatch }) => {
     const [startDateField, setStartDateField] = useState('');
     const [endDateField, setEndDateField] = useState('');
     const [dateFormat, setDateFormat] = useState('DD-MMM-YYYY');
+    const [includeEndDate, setIncludeEndDate] = useState(true);
 
     // Extract headers and data rows from the inputData
     const { headers, dataRows } = useMemo(() => {
@@ -81,12 +84,26 @@ export const CSVConverter = ({ dispatch }) => {
             return dateStr;
         };
 
+        const addDayToDate = (dateStr) => {
+            if (!dateStr) return '';
+            try {
+                const date = new Date(dateStr);
+                date.setDate(date.getDate() + 1);
+                return date.toISOString().split('T')[0];
+            } catch {
+                return dateStr;
+            }
+        };
+
         return dataRows.map(row => {
             const cols = row.split(separator);
+            const startDate = convertDate(cols[idxStart]?.trim());
+            const endDate = convertDate(cols[idxEnd]?.trim());
+
             return {
                 who: cols[idxName]?.trim(),
-                start: convertDate(cols[idxStart]?.trim()),
-                end: convertDate(cols[idxEnd]?.trim())
+                start: startDate,
+                end: includeEndDate ? addDayToDate(endDate) : endDate
             };
         }).filter(r => r.who && r.start && r.end);
     };
@@ -235,6 +252,18 @@ export const CSVConverter = ({ dispatch }) => {
                         size="small"
                         sx={{ mt: 2 }}
                         fullWidth
+                    />
+
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={includeEndDate}
+                                onChange={(e) => setIncludeEndDate(e.target.checked)}
+                                size="small"
+                            />
+                        }
+                        label="To Date range is inclusive"
+                        sx={{ mt: 1 }}
                     />
 
                     <Box display="flex" gap={1} mt={2} flexWrap="wrap">
