@@ -1,20 +1,22 @@
 export const DISPATCH_ACTION = {
-    "CHECK_MEMBER": "CHECK_MEMBER",
-    "UPDATE_FAVOURITES": "UPDATE_FAVOURITES",
-    "UPDATE_EVENT": "UPDATE_EVENT",
-
+  "CHECK_MEMBER": "CHECK_MEMBER",
+  "UPDATE_FAVOURITES": "UPDATE_FAVOURITES",
+  "UPDATE_EVENT": "UPDATE_EVENT",
 }
 
 export const LOCALSTORAGE_KEY = {
-    "RAWEVENTDATA": "RAWEVENTDATA",
-    "SELECTEDMEMBERS": "SELECTEDMEMBERS",
-    "FAVOURITE_MEMBERS": "FAVOURITE_MEMBERS",
+  "RAWEVENTDATA": "RAWEVENTDATA",
+  "SELECTEDMEMBERS": "SELECTEDMEMBERS",
+  "FAVOURITE_MEMBERS": "FAVOURITE_MEMBERS",
+  "IMPORTER_TITLE": "IMPORTER_TITLE",
+  "IMPORTER_HEADERS": "IMPORTER_HEADERS",
+  "IMPORTER_INPUT": "IMPORTER_INPUT",
 }
 
 
 function generateDate(addToCurrentMonth = 0, setDay = 1) {
   const now = new Date();
-  const generatedDate = new Date(now.getFullYear(), now.getMonth()+addToCurrentMonth, setDay);
+  const generatedDate = new Date(now.getFullYear(), now.getMonth() + addToCurrentMonth, setDay);
   return generatedDate.toISOString().split('T')[0]
 }
 
@@ -24,7 +26,7 @@ const defaultMembers = [
 ]
 
 export const LOCALSTORAGE_DEFAULT = {
-    "RAWEVENTDATA": `[
+  "RAWEVENTDATA": `[
         {
           "who": "${defaultMembers[0]}",
           "start": "${generateDate(0, 25)}",
@@ -36,6 +38,10 @@ export const LOCALSTORAGE_DEFAULT = {
           "end": "${generateDate(1, 13)}"
         }
       ]`,
-    "SELECTEDMEMBERS": JSON.stringify(defaultMembers),
-    "FAVOURITE_MEMBERS": JSON.stringify([defaultMembers[0]]),
+  "SELECTEDMEMBERS": JSON.stringify(defaultMembers),
+  "FAVOURITE_MEMBERS": JSON.stringify([defaultMembers[0]]),
+  "IMPORTER_TITLE": "CSV Importer",
+  "IMPORTER_HEADERS": "Code;Name;From;To",
+  "IMPORTER_INPUT": `1;John Doe;17-Aug-2025;22-Aug-2025
+2;Jane Doe;20-Aug-2025;25-Aug-2025`
 }

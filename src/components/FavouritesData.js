@@ -1,16 +1,13 @@
 import TextareaAutosize from '@mui/material/TextareaAutosize';
-import { useEffect, useState } from 'react';
 import { DISPATCH_ACTION, LOCALSTORAGE_DEFAULT, LOCALSTORAGE_KEY } from '../utils/constants';
 import "./FavouritesData.css"
+import { useLocalStorageSync } from './useLocalStorageSync';
 
 export const FavouritesData = ({ dispatch }) => {
-    const [rawFavouritesData, setRawFavouritesData] = useState(() => {
-        return window.localStorage.getItem(LOCALSTORAGE_KEY.FAVOURITE_MEMBERS) || LOCALSTORAGE_DEFAULT.FAVOURITE_MEMBERS
-    })
-
-    useEffect(() => {
-        window.localStorage.setItem(LOCALSTORAGE_KEY.FAVOURITE_MEMBERS, rawFavouritesData)
-    }, [rawFavouritesData])
+    const [rawFavouritesData, setRawFavouritesData] = useLocalStorageSync(
+        LOCALSTORAGE_KEY.FAVOURITE_MEMBERS,
+        LOCALSTORAGE_DEFAULT.FAVOURITE_MEMBERS
+    );
 
     return <div className="favourites-data">
         <TextareaAutosize

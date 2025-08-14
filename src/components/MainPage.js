@@ -8,6 +8,7 @@ import { DISPATCH_ACTION, LOCALSTORAGE_DEFAULT, LOCALSTORAGE_KEY } from '../util
 import { EventData } from './EventData';
 import { FavouritesData } from './FavouritesData';
 import { anonimizeNames, anonimizeEvents } from '../utils/anonymous';
+import { CSVConverter } from './Importer';
 
 const mainReducerFn = (state, action) => {
     if (!action || !action.type) {
@@ -49,7 +50,7 @@ const mainReducerFn = (state, action) => {
         case DISPATCH_ACTION.UPDATE_EVENT: {
             const value = action.value
             try {
-                const updatedEventObj = anonimizeEvents(JSON.parse(value))
+                const updatedEventObj = anonimizeEvents(JSON.parse(value)).events
                 const allMemberName = calculateMembers(updatedEventObj)
                 const memberInfo = calculateMemberInfo(allMemberName)
                 return {
@@ -128,6 +129,7 @@ export const MainPage = () => {
                     selectedMembers={state.selectedMembers} />
                 <EventData dispatch={dispatch} />
                 <FavouritesData dispatch={dispatch} />
+                <CSVConverter dispatch={dispatch} />
             </aside>
         </div>
     )
