@@ -753,7 +753,7 @@ export const anonymous = [
     "Volcanion",
 ].sort(() => Math.random() - 0.5)
 
-export const anonimize = process.env.REACT_APP_ANONIMIZE || false
+export const anonimize = import.meta.env.VITE_APP_ANONIMIZE || false
 
 export const anonimizeEvents = (events) => {
     if (!anonimize) {

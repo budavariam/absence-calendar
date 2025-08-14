@@ -1,6 +1,7 @@
 import React from "react";
 import "./Calendar.css"
 
+import '@fullcalendar/react/dist/vdom';
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
