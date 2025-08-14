@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import TextareaAutosize from '@mui/material/TextareaAutosize';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
@@ -18,11 +18,6 @@ import "./Importer.css";
 export const CSVConverter = ({ dispatch }) => {
     const [isOpen, setIsOpen] = useState(true);
 
-    // Use custom hook for localStorage-synced values
-    const [headersText, setHeadersText] = useLocalStorageSync(
-        LOCALSTORAGE_KEY.IMPORTER_HEADERS,
-        LOCALSTORAGE_DEFAULT.IMPORTER_HEADERS
-    );
     const [inputData, setInputData] = useLocalStorageSync(
         LOCALSTORAGE_KEY.IMPORTER_INPUT,
         LOCALSTORAGE_DEFAULT.IMPORTER_INPUT
@@ -41,10 +36,29 @@ export const CSVConverter = ({ dispatch }) => {
     const [endDateField, setEndDateField] = useState('');
     const [dateFormat, setDateFormat] = useState('DD-MMM-YYYY');
 
+    // Extract headers and data rows from the inputData
+    const { headers, dataRows } = useMemo(() => {
+        if (!inputData.trim()) {
+            return { headers: [], dataRows: [] };
+        }
+
+        const lines = inputData.split('\n').filter(l => l.trim() !== '');
+        if (lines.length === 0) {
+            return { headers: [], dataRows: [] };
+        }
+
+        const headerLine = lines[0];
+        const dataLines = lines.slice(1);
+
+        return {
+            headers: headerLine.split(';').map(h => h.trim()),
+            dataRows: dataLines
+        };
+    }, [inputData]);
+
     const parseDataToJSON = (separator = ';') => {
-        const headers = headersText.split(separator).map(h => h.trim());
-        const rows = inputData.split('\n').filter(l => l.trim() !== '');
-        if (headers.length < 3) throw new Error('Please provide a valid header row');
+        if (headers.length < 3) throw new Error('Please provide at least 3 columns in your CSV');
+        if (dataRows.length === 0) throw new Error('Please provide data rows in your CSV');
 
         const idxName = headers.indexOf(nameField);
         const idxStart = headers.indexOf(startDateField);
@@ -67,7 +81,7 @@ export const CSVConverter = ({ dispatch }) => {
             return dateStr;
         };
 
-        return rows.map(row => {
+        return dataRows.map(row => {
             const cols = row.split(separator);
             return {
                 who: cols[idxName]?.trim(),
@@ -81,7 +95,7 @@ export const CSVConverter = ({ dispatch }) => {
         setIsLoading(true);
         setError('');
         try {
-            if (!headersText.trim() || !inputData.trim()) throw new Error('Please provide headers and data');
+            if (!inputData.trim()) throw new Error('Please provide CSV data');
             const jsonData = parseDataToJSON(separator);
             const formatted = JSON.stringify(jsonData, null, 2);
             setOutputData(formatted);
@@ -128,8 +142,6 @@ export const CSVConverter = ({ dispatch }) => {
         }
     };
 
-    const separatorOptions = headersText ? headersText.split(';').map(h => h.trim()).filter(Boolean) : [];
-
     return (
         <div className="csv-converter">
             <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -143,23 +155,27 @@ export const CSVConverter = ({ dispatch }) => {
 
             <Collapse in={isOpen}>
                 <Box mt={2}>
-                    <Typography variant="subtitle1">CSV/TSV Headers</Typography>
+                    <Typography variant="subtitle1">CSV/TSV Data (with headers)</Typography>
                     <TextareaAutosize
-                        minRows={2}
-                        style={{ width: '100%', fontFamily: 'monospace', padding: 8 }}
-                        value={headersText}
-                        onChange={(e) => setHeadersText(e.target.value)}
-                    />
-
-                    <Typography variant="subtitle1" sx={{ mt: 2 }}>Data Rows</Typography>
-                    <TextareaAutosize
-                        minRows={6}
+                        maxRows={4}
                         style={{ width: '100%', fontFamily: 'monospace', padding: 8 }}
                         value={inputData}
                         onChange={(e) => setInputData(e.target.value)}
+                        placeholder="Paste your complete CSV data here (first row should contain headers)..."
                     />
 
-                    {separatorOptions.length > 0 && (
+                    {headers.length > 0 && (
+                        <Box sx={{ mt: 2 }}>
+                            <Typography variant="body2" sx={{ mb: 1 }}>
+                                Detected Headers: <strong>{headers.join(' | ')}</strong>
+                            </Typography>
+                            <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
+                                Data Rows: {dataRows.length}
+                            </Typography>
+                        </Box>
+                    )}
+
+                    {headers.length > 0 && (
                         <Box sx={{ mt: 2 }}>
                             <Typography variant="body2" sx={{ mb: 1 }}>Field Mapping:</Typography>
                             <Box display="flex" flexDirection="column" gap={1}>
@@ -172,7 +188,7 @@ export const CSVConverter = ({ dispatch }) => {
                                     sx={{ maxWidth: '100%' }}
                                 >
                                     <MenuItem value="">Select Employee Name Field</MenuItem>
-                                    {separatorOptions.map(opt => (
+                                    {headers.map(opt => (
                                         <MenuItem key={opt} value={opt} sx={{ wordBreak: 'break-word' }}>
                                             {opt}
                                         </MenuItem>
@@ -187,7 +203,7 @@ export const CSVConverter = ({ dispatch }) => {
                                     sx={{ maxWidth: '100%' }}
                                 >
                                     <MenuItem value="">Select From Date Field</MenuItem>
-                                    {separatorOptions.map(opt => (
+                                    {headers.map(opt => (
                                         <MenuItem key={opt} value={opt} sx={{ wordBreak: 'break-word' }}>
                                             {opt}
                                         </MenuItem>
@@ -202,7 +218,7 @@ export const CSVConverter = ({ dispatch }) => {
                                     sx={{ maxWidth: '100%' }}
                                 >
                                     <MenuItem value="">Select To Date Field</MenuItem>
-                                    {separatorOptions.map(opt => (
+                                    {headers.map(opt => (
                                         <MenuItem key={opt} value={opt} sx={{ wordBreak: 'break-word' }}>
                                             {opt}
                                         </MenuItem>
@@ -222,10 +238,21 @@ export const CSVConverter = ({ dispatch }) => {
                     />
 
                     <Box display="flex" gap={1} mt={2} flexWrap="wrap">
-                        <Button variant="contained" onClick={() => handleGenerate(';')} disabled={isLoading} size="small">
+                        <Button
+                            variant="contained"
+                            onClick={() => handleGenerate(';')}
+                            disabled={isLoading || headers.length === 0}
+                            size="small"
+                        >
                             Generate from CSV
                         </Button>
-                        <Button variant="contained" sx={{ bgcolor: '#e74c3c' }} onClick={() => handleGenerate('\t')} disabled={isLoading} size="small">
+                        <Button
+                            variant="contained"
+                            sx={{ bgcolor: '#e74c3c' }}
+                            onClick={() => handleGenerate('\t')}
+                            disabled={isLoading || headers.length === 0}
+                            size="small"
+                        >
                             Generate from TSV
                         </Button>
                     </Box>
@@ -256,7 +283,7 @@ export const CSVConverter = ({ dispatch }) => {
                         <Box mt={3}>
                             <Typography variant="subtitle1">Unique Names</Typography>
                             <TextareaAutosize
-                                minRows={4}
+                                maxRows={2}
                                 style={{ width: '100%', padding: 8, fontFamily: 'monospace' }}
                                 value={uniqueNames}
                                 onChange={(e) => setUniqueNames(e.target.value)}
