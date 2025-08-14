@@ -1,12 +1,12 @@
 {
   "files": {
     "main.css": "/absence-calendar/static/css/main.117e0019.css",
-    "main.js": "/absence-calendar/static/js/main.b5ae1cfa.js",
+    "main.js": "/absence-calendar/static/js/main.e1970838.js",
     "static/js/27.057112a7.chunk.js": "/absence-calendar/static/js/27.057112a7.chunk.js",
     "index.html": "/absence-calendar/index.html"
   },
   "entrypoints": [
     "static/css/main.117e0019.css",
-    "static/js/main.b5ae1cfa.js"
+    "static/js/main.e1970838.js"
   ]
 }
