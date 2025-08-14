@@ -90,7 +90,7 @@ export const MainPage = () => {
             allMemberName = calculateMembers(rawEventData)
             memberInfo = calculateMemberInfo(allMemberName)
         } catch (err) {
-            console.error("Failed to load rawEventData", err)
+            console.error("Failed to load rawEventData", err, { eventDataStr })
         }
         let favourites = new Set()
         try {
