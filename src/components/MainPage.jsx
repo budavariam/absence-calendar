@@ -9,6 +9,7 @@ import { EventData } from './EventData';
 import { FavouritesData } from './FavouritesData';
 import { anonimizeNames, anonimizeEvents } from '../utils/anonymous';
 import { CSVConverter } from './Importer';
+import { WeekendToggle } from './WeekendToggle';
 
 const mainReducerFn = (state, action) => {
     if (!action || !action.type) {
@@ -66,6 +67,12 @@ const mainReducerFn = (state, action) => {
             }
             return state
         }
+        case DISPATCH_ACTION.TOGGLE_WEEKENDS: {
+            return {
+                ...state,
+                showWeekends: !state.showWeekends,
+            }
+        }
         default: {
             return state
         }
@@ -101,6 +108,9 @@ export const MainPage = () => {
             console.error("Failed to load favouritesData", err)
         }
 
+        const showWeekendsStr = window.localStorage.getItem(LOCALSTORAGE_KEY.SHOW_WEEKENDS) || LOCALSTORAGE_DEFAULT.SHOW_WEEKENDS
+        const showWeekends = showWeekendsStr === 'true'
+
         return {
             rawData: rawEventData,
             events: calculateEvents(rawEventData, memberInfo, selectedMembers),
@@ -109,6 +119,7 @@ export const MainPage = () => {
             selectedMembers: selectedMembers,
             favourites: favourites,
             anonMapping: rawAnonMapping,
+            showWeekends: showWeekends,
         }
     })
 
@@ -116,11 +127,16 @@ export const MainPage = () => {
         window.localStorage.setItem(LOCALSTORAGE_KEY.SELECTEDMEMBERS, JSON.stringify([...state.selectedMembers]))
     }, [state.selectedMembers])
 
+    useEffect(() => {
+        window.localStorage.setItem(LOCALSTORAGE_KEY.SHOW_WEEKENDS, String(state.showWeekends))
+    }, [state.showWeekends])
+
     // console.log("RENDER APP", state)
     return (
         <div className="mainPage">
             <Calendar
                 events={state.events}
+                showWeekends={state.showWeekends}
             />
             <aside className="member-controller">
                 <MemberSelector
@@ -131,6 +147,7 @@ export const MainPage = () => {
                     selectedMembers={state.selectedMembers} />
                 <EventData dispatch={dispatch} />
                 <FavouritesData dispatch={dispatch} />
+                <WeekendToggle dispatch={dispatch} showWeekends={state.showWeekends} />
                 <CSVConverter dispatch={dispatch} />
             </aside>
         </div>

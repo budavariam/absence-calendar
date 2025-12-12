@@ -9,7 +9,7 @@ import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
 import rrulePlugin from "@fullcalendar/rrule"
 
-export function Calendar({ events }) {
+export function Calendar({ events, showWeekends }) {
     return (
         <div className="calendar">
             <FullCalendar
@@ -22,7 +22,7 @@ export function Calendar({ events }) {
                 // }}
                 themeSystem="Simplex"
                 initialView="dayGridMonth"
-                weekends={false}
+                weekends={showWeekends}
                 eventTimeFormat={{ hour: 'numeric', minute: '2-digit' }}
                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin, rrulePlugin]}
                 events={events}
