@@ -3,3 +3,14 @@
     overflow: scroll;
     grid-area: 1 / 1 / 3 / 2;
 }
+
+/* Style weekend days with a grayer background */
+.fc-day-sat,
+.fc-day-sun {
+    background-color: #e5e5e5 !important;
+}
+
+.fc-daygrid-day.fc-day-sat,
+.fc-daygrid-day.fc-day-sun {
+    background-color: #e5e5e5 !important;
+}
