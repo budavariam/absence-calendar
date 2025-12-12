@@ -53,8 +53,11 @@ export const CSVConverter = ({ dispatch }) => {
         const headerLine = lines[0];
         const dataLines = lines.slice(1);
 
+        // Auto-detect delimiter: use tab if present, otherwise semicolon
+        const delimiter = headerLine.includes('\t') ? '\t' : ';';
+
         return {
-            headers: headerLine.split(';').map(h => h.trim()),
+            headers: headerLine.split(delimiter).map(h => h.trim()),
             dataRows: dataLines
         };
     }, [inputData]);
