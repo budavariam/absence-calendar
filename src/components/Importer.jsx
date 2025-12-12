@@ -40,25 +40,26 @@ export const CSVConverter = ({ dispatch }) => {
     const [includeEndDate, setIncludeEndDate] = useState(true);
 
     // Extract headers and data rows from the inputData
-    const { headers, dataRows } = useMemo(() => {
+    const { headers, dataRows, delimiter } = useMemo(() => {
         if (!inputData.trim()) {
-            return { headers: [], dataRows: [] };
+            return { headers: [], dataRows: [], delimiter: ';' };
         }
 
         const lines = inputData.split('\n').filter(l => l.trim() !== '');
         if (lines.length === 0) {
-            return { headers: [], dataRows: [] };
+            return { headers: [], dataRows: [], delimiter: ';' };
         }
 
         const headerLine = lines[0];
         const dataLines = lines.slice(1);
 
         // Auto-detect delimiter: use tab if present, otherwise semicolon
-        const delimiter = headerLine.includes('\t') ? '\t' : ';';
+        const detectedDelimiter = headerLine.includes('\t') ? '\t' : ';';
 
         return {
-            headers: headerLine.split(delimiter).map(h => h.trim()),
-            dataRows: dataLines
+            headers: headerLine.split(detectedDelimiter).map(h => h.trim()),
+            dataRows: dataLines,
+            delimiter: detectedDelimiter
         };
     }, [inputData]);
 
@@ -111,12 +112,12 @@ export const CSVConverter = ({ dispatch }) => {
         }).filter(r => r.who && r.start && r.end);
     };
 
-    const handleGenerate = (separator = ';') => {
+    const handleGenerate = () => {
         setIsLoading(true);
         setError('');
         try {
             if (!inputData.trim()) throw new Error('Please provide CSV data');
-            const jsonData = parseDataToJSON(separator);
+            const jsonData = parseDataToJSON(delimiter);
             const formatted = JSON.stringify(jsonData, null, 2);
             setOutputData(formatted);
             const names = [...new Set(jsonData.map(item => item.who))];
@@ -186,6 +187,9 @@ export const CSVConverter = ({ dispatch }) => {
 
                     {headers.length > 0 && (
                         <Box sx={{ mt: 2 }}>
+                            <Typography variant="body2" sx={{ mb: 1 }}>
+                                Detected Format: <strong>{delimiter === '\t' ? 'TSV (Tab-separated)' : 'CSV (Semicolon-separated)'}</strong>
+                            </Typography>
                             <Typography variant="body2" sx={{ mb: 1 }}>
                                 Detected Headers: <strong>{headers.join(' | ')}</strong>
                             </Typography>
@@ -272,20 +276,11 @@ export const CSVConverter = ({ dispatch }) => {
                     <Box display="flex" gap={1} mt={2} flexWrap="wrap">
                         <Button
                             variant="contained"
-                            onClick={() => handleGenerate(';')}
+                            onClick={handleGenerate}
                             disabled={isLoading || headers.length === 0}
                             size="small"
                         >
-                            Generate from CSV
-                        </Button>
-                        <Button
-                            variant="contained"
-                            sx={{ bgcolor: '#e74c3c' }}
-                            onClick={() => handleGenerate('\t')}
-                            disabled={isLoading || headers.length === 0}
-                            size="small"
-                        >
-                            Generate from TSV
+                            Generate JSON
                         </Button>
                     </Box>
 
