@@ -1,7 +1,15 @@
-import { useEffect, useReducer } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import './MainPage.css';
+import Typography from '@mui/material/Typography';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { Calendar } from './Calendar';
+import { TableView } from './TableView';
 import { MemberSelector } from './MemberSelector';
 import { calculateEvents, calculateMemberInfo, calculateMembers } from '../utils/member';
 import { DISPATCH_ACTION, LOCALSTORAGE_DEFAULT, LOCALSTORAGE_KEY } from '../utils/constants';
@@ -10,6 +18,11 @@ import { FavouritesData } from './FavouritesData';
 import { anonimizeNames, anonimizeEvents } from '../utils/anonymous';
 import { CSVConverter } from './Importer';
 import { WeekendToggle } from './WeekendToggle';
+
+const VIEW_TYPE = {
+    CALENDAR: 'calendar',
+    TABLE: 'table',
+}
 
 const mainReducerFn = (state, action) => {
     if (!action || !action.type) {
@@ -28,54 +41,40 @@ const mainReducerFn = (state, action) => {
             return {
                 ...state,
                 selectedMembers: newSelection,
-                events: calculateEvents(
-                    state.rawData,
-                    state.memberInfo,
-                    newSelection
-                ),
+                events: calculateEvents(state.rawData, state.memberInfo, newSelection),
             }
         }
         case DISPATCH_ACTION.UPDATE_FAVOURITES: {
             try {
                 const tgt = anonimizeNames(JSON.parse(action.value), state.anonMapping)
-                let favourites = new Set(tgt)
-                return {
-                    ...state,
-                    favourites: favourites,
-                }
+                return { ...state, favourites: new Set(tgt) }
             } catch (err) {
                 console.error("Failed to update favourite members list:", action)
             }
             return state
         }
         case DISPATCH_ACTION.UPDATE_EVENT: {
-            const value = action.value
             try {
-                const updatedEventObj = anonimizeEvents(JSON.parse(value)).events
+                const updatedEventObj = anonimizeEvents(JSON.parse(action.value)).events
                 const allMemberName = calculateMembers(updatedEventObj)
                 const memberInfo = calculateMemberInfo(allMemberName)
                 return {
                     ...state,
                     rawData: updatedEventObj,
-                    allMemberName: allMemberName,
-                    memberInfo: memberInfo,
+                    allMemberName,
+                    memberInfo,
                     events: calculateEvents(updatedEventObj, memberInfo, state.selectedMembers)
                 }
-
             } catch (err) {
                 console.error("Failed to parse events", err)
             }
             return state
         }
         case DISPATCH_ACTION.TOGGLE_WEEKENDS: {
-            return {
-                ...state,
-                showWeekends: !state.showWeekends,
-            }
+            return { ...state, showWeekends: !state.showWeekends }
         }
-        default: {
+        default:
             return state
-        }
     }
 }
 
@@ -114,14 +113,16 @@ export const MainPage = () => {
         return {
             rawData: rawEventData,
             events: calculateEvents(rawEventData, memberInfo, selectedMembers),
-            memberInfo: memberInfo,
-            allMemberName: allMemberName,
-            selectedMembers: selectedMembers,
-            favourites: favourites,
+            memberInfo,
+            allMemberName,
+            selectedMembers,
+            favourites,
             anonMapping: rawAnonMapping,
-            showWeekends: showWeekends,
+            showWeekends,
         }
     })
+
+    const [currentView, setCurrentView] = useState(VIEW_TYPE.CALENDAR)
 
     useEffect(() => {
         window.localStorage.setItem(LOCALSTORAGE_KEY.SELECTEDMEMBERS, JSON.stringify([...state.selectedMembers]))
@@ -131,24 +132,89 @@ export const MainPage = () => {
         window.localStorage.setItem(LOCALSTORAGE_KEY.SHOW_WEEKENDS, String(state.showWeekends))
     }, [state.showWeekends])
 
-    // console.log("RENDER APP", state)
     return (
         <div className="mainPage">
-            <Calendar
-                events={state.events}
-                showWeekends={state.showWeekends}
-            />
-            <aside className="member-controller">
-                <MemberSelector
-                    members={state.allMemberName}
-                    dispatch={dispatch}
-                    favourites={state.favourites}
-                    memberInfo={state.memberInfo}
-                    selectedMembers={state.selectedMembers} />
-                <EventData dispatch={dispatch} />
-                <FavouritesData dispatch={dispatch} />
-                <WeekendToggle dispatch={dispatch} showWeekends={state.showWeekends} />
-                <CSVConverter dispatch={dispatch} />
+            <div className="main-content">
+                {currentView === VIEW_TYPE.CALENDAR ? (
+                    <Calendar events={state.events} showWeekends={state.showWeekends} />
+                ) : (
+                    <TableView
+                        events={state.events}
+                        memberInfo={state.memberInfo}
+                        selectedMembers={state.selectedMembers}
+                        allMemberName={state.allMemberName}
+                        showWeekends={state.showWeekends}
+                    />
+                )}
+            </div>
+
+            <aside className="sidebar">
+                <div className="sidebar-header">
+                    <Typography variant="h6" fontWeight="bold">Absence Calendar</Typography>
+                </div>
+
+                <div className="sidebar-sections">
+                    <Accordion defaultExpanded disableGutters elevation={0} square>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <Typography variant="subtitle2" fontWeight="bold">View</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <ToggleButtonGroup
+                                value={currentView}
+                                exclusive
+                                onChange={(_, v) => v && setCurrentView(v)}
+                                size="small"
+                                fullWidth
+                            >
+                                <ToggleButton value={VIEW_TYPE.CALENDAR}>Calendar</ToggleButton>
+                                <ToggleButton value={VIEW_TYPE.TABLE}>Table</ToggleButton>
+                            </ToggleButtonGroup>
+                            <WeekendToggle dispatch={dispatch} showWeekends={state.showWeekends} />
+                        </AccordionDetails>
+                    </Accordion>
+
+                    <Accordion defaultExpanded disableGutters elevation={0} square>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <Typography variant="subtitle2" fontWeight="bold">Members</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails sx={{ p: 0 }}>
+                            <MemberSelector
+                                members={state.allMemberName}
+                                dispatch={dispatch}
+                                favourites={state.favourites}
+                                memberInfo={state.memberInfo}
+                                selectedMembers={state.selectedMembers}
+                            />
+                        </AccordionDetails>
+                    </Accordion>
+
+                    <Accordion disableGutters elevation={0} square>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <Typography variant="subtitle2" fontWeight="bold">Event Data</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <EventData dispatch={dispatch} />
+                        </AccordionDetails>
+                    </Accordion>
+
+                    <Accordion disableGutters elevation={0} square>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <Typography variant="subtitle2" fontWeight="bold">Favourites</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <FavouritesData dispatch={dispatch} />
+                        </AccordionDetails>
+                    </Accordion>
+
+                    <Accordion disableGutters elevation={0} square>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <Typography variant="subtitle2" fontWeight="bold">CSV Import</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <CSVConverter dispatch={dispatch} />
+                        </AccordionDetails>
+                    </Accordion>
+                </div>
             </aside>
         </div>
     )

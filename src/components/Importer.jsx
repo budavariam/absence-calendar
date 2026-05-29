@@ -1,24 +1,74 @@
-import { useState, useMemo } from 'react';
+import { useReducer, useMemo, useState } from 'react';
+import TextField from '@mui/material/TextField';
 import TextareaAutosize from '@mui/material/TextareaAutosize';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import Collapse from '@mui/material/Collapse';
 import Alert from '@mui/material/Alert';
-import IconButton from '@mui/material/IconButton';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
-import TextField from '@mui/material/TextField';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import IconButton from '@mui/material/IconButton';
+import OpenInFullIcon from '@mui/icons-material/OpenInFull';
+import CloseIcon from '@mui/icons-material/Close';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
 import { DISPATCH_ACTION, LOCALSTORAGE_DEFAULT, LOCALSTORAGE_KEY } from '../utils/constants';
 import { useLocalStorageSync } from './useLocalStorageSync';
 import "./Importer.css";
 
+const IMPORTER_ACTION = {
+    SET_OUTPUT: 'SET_OUTPUT',
+    SET_ERROR: 'SET_ERROR',
+    SET_LOADING: 'SET_LOADING',
+    SET_NAME_FIELD: 'SET_NAME_FIELD',
+    SET_START_FIELD: 'SET_START_FIELD',
+    SET_END_FIELD: 'SET_END_FIELD',
+    SET_DATE_FORMAT: 'SET_DATE_FORMAT',
+    TOGGLE_INCLUDE_END: 'TOGGLE_INCLUDE_END',
+}
+
+const importerReducer = (state, action) => {
+    switch (action.type) {
+        case IMPORTER_ACTION.SET_OUTPUT:
+            return { ...state, outputData: action.value, error: '' }
+        case IMPORTER_ACTION.SET_ERROR:
+            return { ...state, error: action.value, outputData: '' }
+        case IMPORTER_ACTION.SET_LOADING:
+            return { ...state, isLoading: action.value }
+        case IMPORTER_ACTION.SET_NAME_FIELD:
+            return { ...state, nameField: action.value }
+        case IMPORTER_ACTION.SET_START_FIELD:
+            return { ...state, startDateField: action.value }
+        case IMPORTER_ACTION.SET_END_FIELD:
+            return { ...state, endDateField: action.value }
+        case IMPORTER_ACTION.SET_DATE_FORMAT:
+            return { ...state, dateFormat: action.value }
+        case IMPORTER_ACTION.TOGGLE_INCLUDE_END:
+            return { ...state, includeEndDate: !state.includeEndDate }
+        default:
+            return state
+    }
+}
+
 export const CSVConverter = ({ dispatch }) => {
-    const [isOpen, setIsOpen] = useState(true);
+    const [uiState, uiDispatch] = useReducer(importerReducer, {
+        outputData: '',
+        error: '',
+        isLoading: false,
+        nameField: '',
+        startDateField: '',
+        endDateField: '',
+        dateFormat: 'DD-MMM-YYYY',
+        includeEndDate: true,
+    })
+
+    const [csvModalOpen, setCsvModalOpen] = useState(false);
 
     const [inputData, setInputData] = useLocalStorageSync(
         LOCALSTORAGE_KEY.IMPORTER_INPUT,
@@ -29,17 +79,6 @@ export const CSVConverter = ({ dispatch }) => {
         LOCALSTORAGE_DEFAULT.FAVOURITE_MEMBERS
     );
 
-    // Regular state for UI-only values
-    const [outputData, setOutputData] = useState('');
-    const [error, setError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [nameField, setNameField] = useState('');
-    const [startDateField, setStartDateField] = useState('');
-    const [endDateField, setEndDateField] = useState('');
-    const [dateFormat, setDateFormat] = useState('DD-MMM-YYYY');
-    const [includeEndDate, setIncludeEndDate] = useState(true);
-
-    // Extract headers and data rows from the inputData
     const { headers, dataRows, delimiter } = useMemo(() => {
         if (!inputData.trim()) {
             return { headers: [], dataRows: [], delimiter: ';' };
@@ -52,8 +91,6 @@ export const CSVConverter = ({ dispatch }) => {
 
         const headerLine = lines[0];
         const dataLines = lines.slice(1);
-
-        // Auto-detect delimiter: use tab if present, otherwise semicolon
         const detectedDelimiter = headerLine.includes('\t') ? '\t' : ';';
 
         return {
@@ -67,9 +104,9 @@ export const CSVConverter = ({ dispatch }) => {
         if (headers.length < 3) throw new Error('Please provide at least 3 columns in your CSV');
         if (dataRows.length === 0) throw new Error('Please provide data rows in your CSV');
 
-        const idxName = headers.indexOf(nameField);
-        const idxStart = headers.indexOf(startDateField);
-        const idxEnd = headers.indexOf(endDateField);
+        const idxName = headers.indexOf(uiState.nameField);
+        const idxStart = headers.indexOf(uiState.startDateField);
+        const idxEnd = headers.indexOf(uiState.endDateField);
         if (idxName === -1 || idxStart === -1 || idxEnd === -1) throw new Error('Please map all required fields');
 
         const monthMap = {
@@ -80,7 +117,7 @@ export const CSVConverter = ({ dispatch }) => {
 
         const convertDate = (dateStr) => {
             if (!dateStr) return '';
-            if (dateFormat === 'DD-MMM-YYYY') {
+            if (uiState.dateFormat === 'DD-MMM-YYYY') {
                 const parts = dateStr.split('-');
                 if (parts.length !== 3) return dateStr;
                 return `${parts[2]}-${monthMap[parts[1]] || parts[1]}-${parts[0].padStart(2, '0')}`;
@@ -103,225 +140,218 @@ export const CSVConverter = ({ dispatch }) => {
             const cols = row.split(separator);
             const startDate = convertDate(cols[idxStart]?.trim());
             const endDate = convertDate(cols[idxEnd]?.trim());
-
             return {
                 who: cols[idxName]?.trim(),
                 start: startDate,
-                end: includeEndDate ? addDayToDate(endDate) : endDate
+                end: uiState.includeEndDate ? addDayToDate(endDate) : endDate
             };
         }).filter(r => r.who && r.start && r.end);
     };
 
     const handleGenerate = () => {
-        setIsLoading(true);
-        setError('');
+        uiDispatch({ type: IMPORTER_ACTION.SET_LOADING, value: true });
         try {
             if (!inputData.trim()) throw new Error('Please provide CSV data');
             const jsonData = parseDataToJSON(delimiter);
             const formatted = JSON.stringify(jsonData, null, 2);
-            setOutputData(formatted);
+            uiDispatch({ type: IMPORTER_ACTION.SET_OUTPUT, value: formatted });
             const names = [...new Set(jsonData.map(item => item.who))];
             setUniqueNames(JSON.stringify(names));
         } catch (err) {
-            setError(err.message);
-            setOutputData('');
+            uiDispatch({ type: IMPORTER_ACTION.SET_ERROR, value: err.message });
             setUniqueNames('');
         } finally {
-            setIsLoading(false);
+            uiDispatch({ type: IMPORTER_ACTION.SET_LOADING, value: false });
         }
     };
 
     const saveToEvents = () => {
         try {
-            const parsedData = JSON.parse(outputData);
+            const parsedData = JSON.parse(uiState.outputData);
             const jsonString = JSON.stringify(parsedData);
-
-            // Update localStorage and dispatch custom event
             window.localStorage.setItem(LOCALSTORAGE_KEY.RAWEVENTDATA, jsonString);
             window.dispatchEvent(new CustomEvent('localStorageChange', {
                 detail: { key: LOCALSTORAGE_KEY.RAWEVENTDATA, newValue: jsonString }
             }));
-
-            // Also dispatch to update the main state
             dispatch({ type: DISPATCH_ACTION.UPDATE_EVENT, value: jsonString });
         } catch (err) {
             console.error('Failed to parse output data:', err);
-            setError('Invalid JSON data generated');
+            uiDispatch({ type: IMPORTER_ACTION.SET_ERROR, value: 'Invalid JSON data generated' });
         }
     };
 
     const saveToFavourites = () => {
         try {
-            // This automatically updates localStorage and dispatches custom event via the hook
             setUniqueNames(uniqueNames);
-
-            // Also dispatch to reducer
             dispatch({ type: DISPATCH_ACTION.UPDATE_FAVOURITES, value: uniqueNames });
         } catch (err) {
             console.error('Failed to save favourites:', err);
-            setError('Failed to save favourites');
+            uiDispatch({ type: IMPORTER_ACTION.SET_ERROR, value: 'Failed to save favourites' });
         }
     };
 
     return (
         <div className="csv-converter">
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Typography variant="h6" component="h3">
-                    CSV Importer
-                </Typography>
-                <IconButton onClick={() => setIsOpen(!isOpen)}>
-                    {isOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            <Box display="flex" gap={0.5} alignItems="flex-start">
+                <TextField
+                    multiline
+                    maxRows={4}
+                    fullWidth
+                    size="small"
+                    value={inputData}
+                    onChange={(e) => setInputData(e.target.value)}
+                    placeholder="Paste CSV/TSV data here (first row = headers)…"
+                    inputProps={{ style: { fontFamily: 'monospace', fontSize: 12 } }}
+                />
+                <IconButton size="small" onClick={() => setCsvModalOpen(true)} title="Open in full screen">
+                    <OpenInFullIcon fontSize="small" />
                 </IconButton>
             </Box>
 
-            <Collapse in={isOpen}>
-                <Box mt={2}>
-                    <Typography variant="subtitle1">CSV/TSV Data (with headers)</Typography>
-                    <TextareaAutosize
-                        maxRows={4}
-                        style={{ width: '100%', fontFamily: 'monospace', padding: 8 }}
+            <Dialog open={csvModalOpen} fullScreen>
+                <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+                    CSV / TSV Data
+                    <IconButton onClick={() => setCsvModalOpen(false)}><CloseIcon /></IconButton>
+                </DialogTitle>
+                <DialogContent sx={{ display: 'flex', flexDirection: 'column', pt: 1 }}>
+                    <TextField
+                        multiline
+                        fullWidth
                         value={inputData}
                         onChange={(e) => setInputData(e.target.value)}
-                        placeholder="Paste your complete CSV data here (first row should contain headers)..."
+                        placeholder="Paste CSV/TSV data here (first row = headers)…"
+                        inputProps={{ style: { fontFamily: 'monospace', fontSize: 13 } }}
+                        sx={{ flex: 1, '& .MuiInputBase-root': { height: '100%', alignItems: 'flex-start' } }}
                     />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setCsvModalOpen(false)}>Close</Button>
+                </DialogActions>
+            </Dialog>
 
-                    {headers.length > 0 && (
-                        <Box sx={{ mt: 2 }}>
-                            <Typography variant="body2" sx={{ mb: 1 }}>
-                                Detected Format: <strong>{delimiter === '\t' ? 'TSV (Tab-separated)' : 'CSV (Semicolon-separated)'}</strong>
-                            </Typography>
-                            <Typography variant="body2" sx={{ mb: 1 }}>
-                                Detected Headers: <strong>{headers.join(' | ')}</strong>
-                            </Typography>
-                            <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
-                                Data Rows: {dataRows.length}
-                            </Typography>
-                        </Box>
-                    )}
-
-                    {headers.length > 0 && (
-                        <Box sx={{ mt: 2 }}>
-                            <Typography variant="body2" sx={{ mb: 1 }}>Field Mapping:</Typography>
-                            <Box display="flex" flexDirection="column" gap={1}>
-                                <Select
-                                    value={nameField}
-                                    onChange={(e) => setNameField(e.target.value)}
-                                    displayEmpty
-                                    size="small"
-                                    fullWidth
-                                    sx={{ maxWidth: '100%' }}
-                                >
-                                    <MenuItem value="">Select Employee Name Field</MenuItem>
-                                    {headers.map(opt => (
-                                        <MenuItem key={opt} value={opt} sx={{ wordBreak: 'break-word' }}>
-                                            {opt}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                                <Select
-                                    value={startDateField}
-                                    onChange={(e) => setStartDateField(e.target.value)}
-                                    displayEmpty
-                                    size="small"
-                                    fullWidth
-                                    sx={{ maxWidth: '100%' }}
-                                >
-                                    <MenuItem value="">Select From Date Field</MenuItem>
-                                    {headers.map(opt => (
-                                        <MenuItem key={opt} value={opt} sx={{ wordBreak: 'break-word' }}>
-                                            {opt}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                                <Select
-                                    value={endDateField}
-                                    onChange={(e) => setEndDateField(e.target.value)}
-                                    displayEmpty
-                                    size="small"
-                                    fullWidth
-                                    sx={{ maxWidth: '100%' }}
-                                >
-                                    <MenuItem value="">Select To Date Field</MenuItem>
-                                    {headers.map(opt => (
-                                        <MenuItem key={opt} value={opt} sx={{ wordBreak: 'break-word' }}>
-                                            {opt}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </Box>
-                        </Box>
-                    )}
-
-                    <TextField
-                        label="Date Format"
-                        value={dateFormat}
-                        onChange={(e) => setDateFormat(e.target.value)}
-                        size="small"
-                        sx={{ mt: 2 }}
-                        fullWidth
-                    />
-
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={includeEndDate}
-                                onChange={(e) => setIncludeEndDate(e.target.checked)}
-                                size="small"
-                            />
-                        }
-                        label="To Date range is inclusive"
-                        sx={{ mt: 1 }}
-                    />
-
-                    <Box display="flex" gap={1} mt={2} flexWrap="wrap">
-                        <Button
-                            variant="contained"
-                            onClick={handleGenerate}
-                            disabled={isLoading || headers.length === 0}
-                            size="small"
-                        >
-                            Generate JSON
-                        </Button>
-                    </Box>
-
-                    {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-
-                    {outputData && (
-                        <Box mt={3}>
-                            <Typography variant="subtitle1">JSON Output</Typography>
-                            <pre style={{
-                                background: '#f4f4f4',
-                                padding: '10px',
-                                borderRadius: '4px',
-                                overflowX: 'auto',
-                                fontSize: '12px',
-                                maxHeight: '300px',
-                                overflowY: 'auto'
-                            }}>
-                                {outputData}
-                            </pre>
-                            <Button variant="contained" size="small" sx={{ mt: 1 }} onClick={saveToEvents}>
-                                Import to Events
-                            </Button>
-                        </Box>
-                    )}
-
-                    {uniqueNames && (
-                        <Box mt={3}>
-                            <Typography variant="subtitle1">Unique Names</Typography>
-                            <TextareaAutosize
-                                maxRows={2}
-                                style={{ width: '100%', padding: 8, fontFamily: 'monospace' }}
-                                value={uniqueNames}
-                                onChange={(e) => setUniqueNames(e.target.value)}
-                            />
-                            <Button variant="contained" size="small" sx={{ mt: 1 }} onClick={saveToFavourites}>
-                                Update Favourites
-                            </Button>
-                        </Box>
-                    )}
+            {headers.length > 0 && (
+                <Box sx={{ mt: 1.5 }}>
+                    <Typography variant="caption" color="text.secondary">
+                        <strong>{delimiter === '\t' ? 'TSV' : 'CSV'}</strong> · {headers.join(' | ')} · {dataRows.length} rows
+                    </Typography>
                 </Box>
-            </Collapse>
+            )}
+
+            {headers.length > 0 && (
+                <Box sx={{ mt: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        Field Mapping
+                    </Typography>
+                    <Select
+                        value={uiState.nameField}
+                        onChange={(e) => uiDispatch({ type: IMPORTER_ACTION.SET_NAME_FIELD, value: e.target.value })}
+                        displayEmpty
+                        size="small"
+                        fullWidth
+                    >
+                        <MenuItem value=""><em>Employee name field</em></MenuItem>
+                        {headers.map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
+                    </Select>
+                    <Select
+                        value={uiState.startDateField}
+                        onChange={(e) => uiDispatch({ type: IMPORTER_ACTION.SET_START_FIELD, value: e.target.value })}
+                        displayEmpty
+                        size="small"
+                        fullWidth
+                    >
+                        <MenuItem value=""><em>From date field</em></MenuItem>
+                        {headers.map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
+                    </Select>
+                    <Select
+                        value={uiState.endDateField}
+                        onChange={(e) => uiDispatch({ type: IMPORTER_ACTION.SET_END_FIELD, value: e.target.value })}
+                        displayEmpty
+                        size="small"
+                        fullWidth
+                    >
+                        <MenuItem value=""><em>To date field</em></MenuItem>
+                        {headers.map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
+                    </Select>
+                </Box>
+            )}
+
+            <TextField
+                label="Date Format"
+                value={uiState.dateFormat}
+                onChange={(e) => uiDispatch({ type: IMPORTER_ACTION.SET_DATE_FORMAT, value: e.target.value })}
+                size="small"
+                sx={{ mt: 1.5 }}
+                fullWidth
+            />
+
+            <FormControlLabel
+                control={
+                    <Checkbox
+                        checked={uiState.includeEndDate}
+                        onChange={() => uiDispatch({ type: IMPORTER_ACTION.TOGGLE_INCLUDE_END })}
+                        size="small"
+                    />
+                }
+                label={<Typography variant="body2">To date is inclusive</Typography>}
+                sx={{ mt: 0.5 }}
+            />
+
+            <Box display="flex" gap={1} mt={1.5} flexWrap="wrap">
+                <Button
+                    variant="contained"
+                    onClick={handleGenerate}
+                    disabled={uiState.isLoading || headers.length === 0}
+                    size="small"
+                >
+                    Generate JSON
+                </Button>
+            </Box>
+
+            {uiState.error && <Alert severity="error" sx={{ mt: 1.5 }}>{uiState.error}</Alert>}
+
+            {uiState.outputData && (
+                <Box mt={2}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        JSON Output
+                    </Typography>
+                    <pre style={{
+                        background: '#f4f4f4',
+                        padding: '8px',
+                        borderRadius: '4px',
+                        overflowX: 'auto',
+                        fontSize: '11px',
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        marginTop: 4,
+                    }}>
+                        {uiState.outputData}
+                    </pre>
+                    <Button variant="contained" size="small" sx={{ mt: 1 }} onClick={saveToEvents}>
+                        Import to Events
+                    </Button>
+                </Box>
+            )}
+
+            {uniqueNames && (
+                <Box mt={2}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        Unique Names
+                    </Typography>
+                    <TextField
+                        multiline
+                        maxRows={3}
+                        fullWidth
+                        size="small"
+                        value={uniqueNames}
+                        onChange={(e) => setUniqueNames(e.target.value)}
+                        inputProps={{ style: { fontFamily: 'monospace', fontSize: 12 } }}
+                        sx={{ mt: 0.5 }}
+                    />
+                    <Button variant="contained" size="small" sx={{ mt: 1 }} onClick={saveToFavourites}>
+                        Update Favourites
+                    </Button>
+                </Box>
+            )}
         </div>
     );
 };

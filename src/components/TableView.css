@@ -1,0 +1,64 @@
+.table-view {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 8px;
+}
+
+.table-scroll {
+    overflow: auto;
+    flex: 1;
+    overscroll-behavior: contain;
+}
+
+.absence-table {
+    border-collapse: collapse;
+    min-width: max-content;
+}
+
+.absence-table th,
+.absence-table td {
+    border: 1px solid #ddd;
+    padding: 4px 8px;
+    white-space: nowrap;
+}
+
+.col-member-header {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 2;
+    min-width: 160px;
+    text-align: left;
+}
+
+.col-date-header {
+    min-width: 48px;
+    text-align: center;
+    font-size: 11px;
+    background: white;
+}
+
+.col-date-header.weekend {
+    color: #d32f2f;
+}
+
+.col-member-name {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 1;
+    padding: 6px 8px;
+    font-weight: 500;
+}
+
+.col-day-cell {
+    min-width: 30px;
+    height: 28px;
+}
+
+.col-day-cell.weekend {
+    background-color: #e5e5e5;
+}

@@ -1,11 +1,64 @@
 .mainPage {
     display: grid;
-    grid-template-columns: 1fr 300px;
-    grid-template-rows: 1fr 300px;
-    grid-column-gap: 0px;
-    grid-row-gap: 0px;
+    grid-template-columns: 1fr 320px;
+    grid-template-rows: 100vh;
+    overflow: hidden;
 }
 
-.member-controller {
-    grid-area: 1 / 2 / 3 / 2;
+.main-content {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* ── Sidebar ────────────────────────────────────── */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    border-left: 1px solid #e0e0e0;
+    background: #fafafa;
+}
+
+.sidebar-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    flex-shrink: 0;
+    background: white;
+}
+
+.sidebar-sections {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+/* Flat accordion styling */
+.sidebar-sections .MuiAccordion-root {
+    border-bottom: 1px solid #e0e0e0;
+    background: transparent;
+}
+
+.sidebar-sections .MuiAccordion-root::before {
+    display: none;
+}
+
+.sidebar-sections .MuiAccordionSummary-root {
+    min-height: 40px;
+    padding: 0 12px;
+}
+
+.sidebar-sections .MuiAccordionSummary-root.Mui-expanded {
+    min-height: 40px;
+}
+
+.sidebar-sections .MuiAccordionSummary-content {
+    margin: 8px 0;
+}
+
+.sidebar-sections .MuiAccordionDetails-root {
+    padding: 8px 12px 12px;
+    background: white;
 }

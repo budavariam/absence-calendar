@@ -15,19 +15,22 @@ export function Calendar({ events, showWeekends }) {
             <FullCalendar
                 firstDay={1}
                 locale="en"
-                // header={{
-                //   left: "prev,next",
-                //   center: "title",
-                //   right: "dayGridMonth,timeGridWeek,timeGridDay"
-                // }}
                 themeSystem="Simplex"
                 initialView="dayGridMonth"
                 weekends={showWeekends}
                 eventTimeFormat={{ hour: 'numeric', minute: '2-digit' }}
                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin, rrulePlugin]}
                 events={events}
+                dayCellClassNames={(arg) => arg.date.getMonth() % 2 === 0 ? 'month-even' : 'month-odd'}
+                views={{
+                    threeMonths: {
+                        type: 'dayGrid',
+                        duration: { months: 3 },
+                        buttonText: '3 months',
+                    }
+                }}
                 headerToolbar={{
-                    left: 'dayGridMonth,timeGridWeek',
+                    left: 'dayGridMonth,threeMonths,timeGridWeek',
                     center: 'title'
                 }}
             />
