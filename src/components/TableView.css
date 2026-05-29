@@ -59,6 +59,13 @@
     height: 28px;
 }
 
-.col-day-cell.weekend {
-    background-color: #e5e5e5;
+.col-day-cell.tentative {
+    background-image: repeating-linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, 0)   0px,
+        rgba(255, 255, 255, 0)   4px,
+        rgba(255, 255, 255, 0.4) 4px,
+        rgba(255, 255, 255, 0.4) 8px
+    );
+    opacity: 0.75;
 }

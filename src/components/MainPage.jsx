@@ -7,6 +7,9 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
+import Alert from '@mui/material/Alert';
 
 import { Calendar } from './Calendar';
 import { TableView } from './TableView';
@@ -25,9 +28,8 @@ const VIEW_TYPE = {
 }
 
 const mainReducerFn = (state, action) => {
-    if (!action || !action.type) {
-        return state
-    }
+    if (!action || !action.type) return state
+
     switch (action.type) {
         case DISPATCH_ACTION.CHECK_MEMBER: {
             const tgt = action.value
@@ -38,11 +40,8 @@ const mainReducerFn = (state, action) => {
             } else {
                 newSelection = new Set(state.selectedMembers).add(tgt)
             }
-            return {
-                ...state,
-                selectedMembers: newSelection,
-                events: calculateEvents(state.rawData, state.memberInfo, newSelection),
-            }
+            const { events, errors } = calculateEvents(state.rawData, state.memberInfo, newSelection, state.inclusiveEndDate)
+            return { ...state, selectedMembers: newSelection, events, eventErrors: errors }
         }
         case DISPATCH_ACTION.UPDATE_FAVOURITES: {
             try {
@@ -58,13 +57,8 @@ const mainReducerFn = (state, action) => {
                 const updatedEventObj = anonimizeEvents(JSON.parse(action.value)).events
                 const allMemberName = calculateMembers(updatedEventObj)
                 const memberInfo = calculateMemberInfo(allMemberName)
-                return {
-                    ...state,
-                    rawData: updatedEventObj,
-                    allMemberName,
-                    memberInfo,
-                    events: calculateEvents(updatedEventObj, memberInfo, state.selectedMembers)
-                }
+                const { events, errors } = calculateEvents(updatedEventObj, memberInfo, state.selectedMembers, state.inclusiveEndDate)
+                return { ...state, rawData: updatedEventObj, allMemberName, memberInfo, events, eventErrors: errors }
             } catch (err) {
                 console.error("Failed to parse events", err)
             }
@@ -72,6 +66,11 @@ const mainReducerFn = (state, action) => {
         }
         case DISPATCH_ACTION.TOGGLE_WEEKENDS: {
             return { ...state, showWeekends: !state.showWeekends }
+        }
+        case DISPATCH_ACTION.TOGGLE_INCLUSIVE_END: {
+            const inclusiveEndDate = !state.inclusiveEndDate
+            const { events, errors } = calculateEvents(state.rawData, state.memberInfo, state.selectedMembers, inclusiveEndDate)
+            return { ...state, inclusiveEndDate, events, eventErrors: errors }
         }
         default:
             return state
@@ -90,8 +89,8 @@ export const MainPage = () => {
         let memberInfo = {}
         let rawAnonMapping = {}
         try {
-            let { events, anonMapping } = anonimizeEvents(JSON.parse(eventDataStr))
-            rawEventData = events
+            let { events: evts, anonMapping } = anonimizeEvents(JSON.parse(eventDataStr))
+            rawEventData = evts
             rawAnonMapping = anonMapping
             allMemberName = calculateMembers(rawEventData)
             memberInfo = calculateMemberInfo(allMemberName)
@@ -107,18 +106,22 @@ export const MainPage = () => {
             console.error("Failed to load favouritesData", err)
         }
 
-        const showWeekendsStr = window.localStorage.getItem(LOCALSTORAGE_KEY.SHOW_WEEKENDS) || LOCALSTORAGE_DEFAULT.SHOW_WEEKENDS
-        const showWeekends = showWeekendsStr === 'true'
+        const showWeekends = (window.localStorage.getItem(LOCALSTORAGE_KEY.SHOW_WEEKENDS) || LOCALSTORAGE_DEFAULT.SHOW_WEEKENDS) === 'true'
+        const inclusiveEndDate = (window.localStorage.getItem(LOCALSTORAGE_KEY.INCLUSIVE_END_DATE) || LOCALSTORAGE_DEFAULT.INCLUSIVE_END_DATE) === 'true'
+
+        const { events, errors } = calculateEvents(rawEventData, memberInfo, selectedMembers, inclusiveEndDate)
 
         return {
             rawData: rawEventData,
-            events: calculateEvents(rawEventData, memberInfo, selectedMembers),
+            events,
+            eventErrors: errors,
             memberInfo,
             allMemberName,
             selectedMembers,
             favourites,
             anonMapping: rawAnonMapping,
             showWeekends,
+            inclusiveEndDate,
         }
     })
 
@@ -131,6 +134,10 @@ export const MainPage = () => {
     useEffect(() => {
         window.localStorage.setItem(LOCALSTORAGE_KEY.SHOW_WEEKENDS, String(state.showWeekends))
     }, [state.showWeekends])
+
+    useEffect(() => {
+        window.localStorage.setItem(LOCALSTORAGE_KEY.INCLUSIVE_END_DATE, String(state.inclusiveEndDate))
+    }, [state.inclusiveEndDate])
 
     return (
         <div className="mainPage">
@@ -194,6 +201,24 @@ export const MainPage = () => {
                         </AccordionSummary>
                         <AccordionDetails>
                             <EventData dispatch={dispatch} />
+                            <FormControlLabel
+                                sx={{ mt: 1, ml: 0 }}
+                                control={
+                                    <Switch
+                                        checked={state.inclusiveEndDate}
+                                        onChange={() => dispatch({ type: DISPATCH_ACTION.TOGGLE_INCLUSIVE_END })}
+                                        size="small"
+                                    />
+                                }
+                                label={<Typography variant="body2">End date is inclusive</Typography>}
+                            />
+                            {state.eventErrors.length > 0 && (
+                                <Alert severity="warning" sx={{ mt: 1 }}>
+                                    {state.eventErrors.map((e, i) => (
+                                        <div key={i}>{e}</div>
+                                    ))}
+                                </Alert>
+                            )}
                         </AccordionDetails>
                     </Accordion>
 

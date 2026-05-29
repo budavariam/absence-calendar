@@ -29,6 +29,7 @@ const IMPORTER_ACTION = {
     SET_NAME_FIELD: 'SET_NAME_FIELD',
     SET_START_FIELD: 'SET_START_FIELD',
     SET_END_FIELD: 'SET_END_FIELD',
+    SET_TENTATIVE_FIELD: 'SET_TENTATIVE_FIELD',
     SET_DATE_FORMAT: 'SET_DATE_FORMAT',
     TOGGLE_INCLUDE_END: 'TOGGLE_INCLUDE_END',
 }
@@ -47,6 +48,8 @@ const importerReducer = (state, action) => {
             return { ...state, startDateField: action.value }
         case IMPORTER_ACTION.SET_END_FIELD:
             return { ...state, endDateField: action.value }
+        case IMPORTER_ACTION.SET_TENTATIVE_FIELD:
+            return { ...state, tentativeField: action.value }
         case IMPORTER_ACTION.SET_DATE_FORMAT:
             return { ...state, dateFormat: action.value }
         case IMPORTER_ACTION.TOGGLE_INCLUDE_END:
@@ -64,6 +67,7 @@ export const CSVConverter = ({ dispatch }) => {
         nameField: '',
         startDateField: '',
         endDateField: '',
+        tentativeField: '',
         dateFormat: 'DD-MMM-YYYY',
         includeEndDate: true,
     })
@@ -91,7 +95,10 @@ export const CSVConverter = ({ dispatch }) => {
 
         const headerLine = lines[0];
         const dataLines = lines.slice(1);
-        const detectedDelimiter = headerLine.includes('\t') ? '\t' : ';';
+        // Detect delimiter: tab > semicolon > comma
+        const detectedDelimiter = headerLine.includes('\t') ? '\t'
+            : headerLine.includes(';') ? ';'
+            : ',';
 
         return {
             headers: headerLine.split(detectedDelimiter).map(h => h.trim()),
@@ -117,12 +124,39 @@ export const CSVConverter = ({ dispatch }) => {
 
         const convertDate = (dateStr) => {
             if (!dateStr) return '';
-            if (uiState.dateFormat === 'DD-MMM-YYYY') {
-                const parts = dateStr.split('-');
-                if (parts.length !== 3) return dateStr;
-                return `${parts[2]}-${monthMap[parts[1]] || parts[1]}-${parts[0].padStart(2, '0')}`;
+            switch (uiState.dateFormat) {
+                case 'DD-MMM-YYYY': {
+                    const p = dateStr.split('-');
+                    if (p.length !== 3) return dateStr;
+                    return `${p[2]}-${monthMap[p[1]] || p[1]}-${p[0].padStart(2, '0')}`;
+                }
+                case 'DD-MM-YYYY': {
+                    const p = dateStr.split('-');
+                    if (p.length !== 3) return dateStr;
+                    return `${p[2]}-${p[1]}-${p[0]}`;
+                }
+                case 'MM-DD-YYYY': {
+                    const p = dateStr.split('-');
+                    if (p.length !== 3) return dateStr;
+                    return `${p[2]}-${p[0]}-${p[1]}`;
+                }
+                case 'DD/MM/YYYY': {
+                    const p = dateStr.split('/');
+                    if (p.length !== 3) return dateStr;
+                    return `${p[2]}-${p[1]}-${p[0]}`;
+                }
+                case 'MM/DD/YYYY': {
+                    const p = dateStr.split('/');
+                    if (p.length !== 3) return dateStr;
+                    return `${p[2]}-${p[0]}-${p[1]}`;
+                }
+                case 'YYYY-MM-DD':
+                    return dateStr;
+                case 'YYYY/MM/DD':
+                    return dateStr.replace(/\//g, '-');
+                default:
+                    return dateStr;
             }
-            return dateStr;
         };
 
         const addDayToDate = (dateStr) => {
@@ -136,15 +170,25 @@ export const CSVConverter = ({ dispatch }) => {
             }
         };
 
+        const parseTentative = (val) => {
+            if (!val) return false;
+            return ['true', 'yes', '1'].includes(val.toLowerCase().trim());
+        };
+
         return dataRows.map(row => {
             const cols = row.split(separator);
             const startDate = convertDate(cols[idxStart]?.trim());
             const endDate = convertDate(cols[idxEnd]?.trim());
-            return {
+            const entry = {
                 who: cols[idxName]?.trim(),
                 start: startDate,
-                end: uiState.includeEndDate ? addDayToDate(endDate) : endDate
+                end: uiState.includeEndDate ? addDayToDate(endDate) : endDate,
             };
+            if (uiState.tentativeField) {
+                const idxTentative = headers.indexOf(uiState.tentativeField);
+                entry.tentative = parseTentative(cols[idxTentative]?.trim());
+            }
+            return entry;
         }).filter(r => r.who && r.start && r.end);
     };
 
@@ -232,7 +276,9 @@ export const CSVConverter = ({ dispatch }) => {
             {headers.length > 0 && (
                 <Box sx={{ mt: 1.5 }}>
                     <Typography variant="caption" color="text.secondary">
-                        <strong>{delimiter === '\t' ? 'TSV' : 'CSV'}</strong> · {headers.join(' | ')} · {dataRows.length} rows
+                        <strong>
+                            {delimiter === '\t' ? 'TSV (tab)' : delimiter === ';' ? 'CSV (semicolon)' : 'CSV (comma)'}
+                        </strong> · {headers.join(' | ')} · {dataRows.length} rows
                     </Typography>
                 </Box>
             )}
@@ -272,17 +318,31 @@ export const CSVConverter = ({ dispatch }) => {
                         <MenuItem value=""><em>To date field</em></MenuItem>
                         {headers.map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
                     </Select>
+                    <Select
+                        value={uiState.tentativeField}
+                        onChange={(e) => uiDispatch({ type: IMPORTER_ACTION.SET_TENTATIVE_FIELD, value: e.target.value })}
+                        displayEmpty
+                        size="small"
+                        fullWidth
+                    >
+                        <MenuItem value=""><em>Tentative field (optional — true/yes/1)</em></MenuItem>
+                        {headers.map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
+                    </Select>
                 </Box>
             )}
 
-            <TextField
-                label="Date Format"
-                value={uiState.dateFormat}
-                onChange={(e) => uiDispatch({ type: IMPORTER_ACTION.SET_DATE_FORMAT, value: e.target.value })}
-                size="small"
-                sx={{ mt: 1.5 }}
-                fullWidth
-            />
+            <FormControl size="small" fullWidth sx={{ mt: 1.5 }}>
+                <InputLabel>Date Format</InputLabel>
+                <Select
+                    value={uiState.dateFormat}
+                    label="Date Format"
+                    onChange={(e) => uiDispatch({ type: IMPORTER_ACTION.SET_DATE_FORMAT, value: e.target.value })}
+                >
+                    {['DD-MMM-YYYY', 'DD-MM-YYYY', 'MM-DD-YYYY', 'DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD', 'YYYY/MM/DD'].map(fmt => (
+                        <MenuItem key={fmt} value={fmt}>{fmt}</MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
 
             <FormControlLabel
                 control={

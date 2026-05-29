@@ -24,7 +24,17 @@
     background-color: #e5e5e5 !important;
 }
 
-/* Alternating month stripe for multi-month views */
+/* Tentative events: diagonal stripe + reduced opacity */
+.fc-event.tentative {
+    background-image: repeating-linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, 0)   0px,
+        rgba(255, 255, 255, 0)   4px,
+        rgba(255, 255, 255, 0.4) 4px,
+        rgba(255, 255, 255, 0.4) 8px
+    ) !important;
+    opacity: 0.75;
+}
 .fc-daygrid-day.month-even {
     background-color: #eef2f7;
 }

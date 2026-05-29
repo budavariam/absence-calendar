@@ -27,7 +27,7 @@ export function TableView({ events, memberInfo, selectedMembers, allMemberName, 
         return result;
     }, [showWeekends]);
 
-    // memberName -> [{ start, end, colorHex }]
+    // memberName -> [{ start, end, colorHex, tentative }]
     const memberEvents = useMemo(() => {
         const lookup = {};
         for (const event of events) {
@@ -36,6 +36,7 @@ export function TableView({ events, memberInfo, selectedMembers, allMemberName, 
                 start: event.start,
                 end: event.end,
                 colorHex: event.color.hex(),
+                tentative: event.tentative === true,
             });
         }
         return lookup;
@@ -45,13 +46,11 @@ export function TableView({ events, memberInfo, selectedMembers, allMemberName, 
         return allMemberName.filter(m => selectedMembers.has(m));
     }, [allMemberName, selectedMembers]);
 
-    function getVacationColor(memberName, dateStr) {
+    function getVacationEvent(memberName, dateStr) {
         const evts = memberEvents[memberName];
         if (!evts) return null;
         for (const evt of evts) {
-            if (dateStr >= evt.start && dateStr < evt.end) {
-                return evt.colorHex;
-            }
+            if (dateStr >= evt.start && dateStr < evt.end) return evt;
         }
         return null;
     }
@@ -90,13 +89,13 @@ export function TableView({ events, memberInfo, selectedMembers, allMemberName, 
                                     </td>
                                     {dates.map(d => {
                                         const dateStr = toDateStr(d);
-                                        const bgColor = getVacationColor(member, dateStr);
+                                        const vacEvent = getVacationEvent(member, dateStr);
                                         const weekend = isWeekend(d);
                                         return (
                                             <td
                                                 key={dateStr}
-                                                className={`col-day-cell${weekend ? ' weekend' : ''}`}
-                                                style={bgColor ? { backgroundColor: bgColor } : {}}
+                                                className={`col-day-cell${weekend ? ' weekend' : ''}${vacEvent?.tentative ? ' tentative' : ''}`}
+                                                style={vacEvent ? { backgroundColor: vacEvent.colorHex } : {}}
                                             />
                                         );
                                     })}
