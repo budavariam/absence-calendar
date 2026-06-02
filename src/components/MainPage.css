@@ -1,25 +1,33 @@
 .mainPage {
-    display: grid;
-    grid-template-columns: 1fr 320px;
-    grid-template-rows: 100vh;
+    display: flex;
+    height: 100vh;
     overflow: hidden;
 }
 
 .main-content {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    min-height: 0;
 }
 
 /* ── Sidebar ────────────────────────────────────── */
 .sidebar {
     display: flex;
     flex-direction: column;
+    width: 320px;
+    min-width: 320px;
     height: 100vh;
     overflow: hidden;
     border-left: 1px solid #e0e0e0;
     background: #fafafa;
+    transition: width 0.2s ease, min-width 0.2s ease;
+}
+
+.sidebar--collapsed {
+    width: 48px;
+    min-width: 48px;
 }
 
 .sidebar-header {
@@ -29,12 +37,40 @@
     border-bottom: 1px solid #e0e0e0;
     flex-shrink: 0;
     background: white;
+    /* prevent title from pushing layout during transition */
+    overflow: hidden;
+}
+
+/* Collapsed icon strip */
+.sidebar-icon-strip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 0;
+    gap: 2px;
+    width: 48px;
+    overflow: hidden;
+}
+
+.sidebar-icon-btn.MuiIconButton-root {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    color: #555;
+    flex-shrink: 0;
+}
+
+.sidebar-icon-btn.MuiIconButton-root:hover {
+    background: #e8e8e8;
+    color: #111;
 }
 
 .sidebar-sections {
     flex: 1;
     overflow-y: auto;
     overscroll-behavior: contain;
+    /* clip any overflowing text during the width transition */
+    overflow-x: hidden;
 }
 
 /* Flat accordion styling */
@@ -58,6 +94,9 @@
 
 .sidebar-sections .MuiAccordionSummary-content {
     margin: 8px 0;
+    /* prevent text overflow during transition */
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .sidebar-sections .MuiAccordionDetails-root {
@@ -71,8 +110,6 @@
     flex-direction: column;
     height: 100dvh;
     overflow: hidden;
-    grid-template-columns: unset;
-    grid-template-rows: unset;
 }
 
 .mobile-topbar {
@@ -96,6 +133,7 @@
 
 .mobile-drawer-paper .sidebar-header {
     padding: 10px 12px 10px 16px;
+    flex-shrink: 0;
 }
 
 .mobile-drawer-paper .sidebar-sections {

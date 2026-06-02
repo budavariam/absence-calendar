@@ -12,8 +12,16 @@ import Switch from '@mui/material/Switch';
 import Alert from '@mui/material/Alert';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import TuneIcon from '@mui/icons-material/Tune';
+import GroupIcon from '@mui/icons-material/Group';
+import EventNoteIcon from '@mui/icons-material/EventNote';
+import StarIcon from '@mui/icons-material/Star';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
 import { Calendar } from './Calendar';
@@ -31,6 +39,8 @@ const VIEW_TYPE = {
     CALENDAR: 'calendar',
     TABLE: 'table',
 }
+
+const LOCALSTORAGE_KEY_SIDEBAR = 'SIDEBAR_COLLAPSED';
 
 const mainReducerFn = (state, action) => {
     if (!action || !action.type) return state
@@ -88,109 +98,108 @@ const mainReducerFn = (state, action) => {
 const persistedMembers = window.localStorage.getItem(LOCALSTORAGE_KEY.SELECTEDMEMBERS) || LOCALSTORAGE_DEFAULT.SELECTEDMEMBERS
 const persistedSelection = JSON.parse(persistedMembers)
 
-const SidebarContent = ({ state, dispatch, currentView, setCurrentView, onClose }) => (
-    <>
-        <div className="sidebar-header">
-            <Typography variant="h6" fontWeight="bold">Absence Calendar</Typography>
-            {onClose && (
-                <IconButton size="small" onClick={onClose} sx={{ ml: 'auto' }}>
-                    <CloseIcon />
-                </IconButton>
-            )}
-        </div>
-        <div className="sidebar-sections">
-            <Accordion defaultExpanded disableGutters elevation={0} square>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography variant="subtitle2" fontWeight="bold">View</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <ToggleButtonGroup
-                        value={currentView}
-                        exclusive
-                        onChange={(_, v) => { if (v) { setCurrentView(v); onClose?.(); } }}
-                        size="small"
-                        fullWidth
-                    >
-                        <ToggleButton value={VIEW_TYPE.CALENDAR}>Calendar</ToggleButton>
-                        <ToggleButton value={VIEW_TYPE.TABLE}>Table</ToggleButton>
-                    </ToggleButtonGroup>
-                    <WeekendToggle dispatch={dispatch} showWeekends={state.showWeekends} />
-                    <FormControlLabel
-                        sx={{ mt: 0.5, ml: 0 }}
-                        control={
-                            <Switch
-                                checked={state.showComments}
-                                onChange={() => dispatch({ type: DISPATCH_ACTION.TOGGLE_SHOW_COMMENTS })}
-                                size="small"
-                            />
-                        }
-                        label={<Typography variant="body2">Show comments on events</Typography>}
-                    />
-                </AccordionDetails>
-            </Accordion>
+const SECTION_ICONS = [
+    { label: 'View', icon: <TuneIcon fontSize="small" /> },
+    { label: 'Members', icon: <GroupIcon fontSize="small" /> },
+    { label: 'Event Data', icon: <EventNoteIcon fontSize="small" /> },
+    { label: 'Favourites', icon: <StarIcon fontSize="small" /> },
+    { label: 'CSV Import', icon: <UploadFileIcon fontSize="small" /> },
+]
 
-            <Accordion defaultExpanded disableGutters elevation={0} square>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography variant="subtitle2" fontWeight="bold">Members</Typography>
-                </AccordionSummary>
-                <AccordionDetails sx={{ p: 0 }}>
-                    <MemberSelector
-                        members={state.allMemberName}
-                        dispatch={dispatch}
-                        favourites={state.favourites}
-                        memberInfo={state.memberInfo}
-                        selectedMembers={state.selectedMembers}
-                    />
-                </AccordionDetails>
-            </Accordion>
+// Only the accordion sections — no header
+const SidebarSections = ({ state, dispatch, currentView, setCurrentView, onViewChange }) => (
+    <div className="sidebar-sections">
+        <Accordion defaultExpanded disableGutters elevation={0} square>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle2" fontWeight="bold">View</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+                <ToggleButtonGroup
+                    value={currentView}
+                    exclusive
+                    onChange={(_, v) => { if (v) { setCurrentView(v); onViewChange?.(); } }}
+                    size="small"
+                    fullWidth
+                >
+                    <ToggleButton value={VIEW_TYPE.CALENDAR}>Calendar</ToggleButton>
+                    <ToggleButton value={VIEW_TYPE.TABLE}>Table</ToggleButton>
+                </ToggleButtonGroup>
+                <WeekendToggle dispatch={dispatch} showWeekends={state.showWeekends} />
+                <FormControlLabel
+                    sx={{ mt: 0.5, ml: 0 }}
+                    control={
+                        <Switch
+                            checked={state.showComments}
+                            onChange={() => dispatch({ type: DISPATCH_ACTION.TOGGLE_SHOW_COMMENTS })}
+                            size="small"
+                        />
+                    }
+                    label={<Typography variant="body2">Show comments on events</Typography>}
+                />
+            </AccordionDetails>
+        </Accordion>
 
-            <Accordion disableGutters elevation={0} square>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography variant="subtitle2" fontWeight="bold">Event Data</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <EventData dispatch={dispatch} />
-                    <FormControlLabel
-                        sx={{ mt: 1, ml: 0 }}
-                        control={
-                            <Switch
-                                checked={state.inclusiveEndDate}
-                                onChange={() => dispatch({ type: DISPATCH_ACTION.TOGGLE_INCLUSIVE_END })}
-                                size="small"
-                            />
-                        }
-                        label={<Typography variant="body2">End date is inclusive</Typography>}
-                    />
-                    {state.eventErrors.length > 0 && (
-                        <Alert severity="warning" sx={{ mt: 1 }}>
-                            {state.eventErrors.map((e, i) => (
-                                <div key={i}>{e}</div>
-                            ))}
-                        </Alert>
-                    )}
-                </AccordionDetails>
-            </Accordion>
+        <Accordion defaultExpanded disableGutters elevation={0} square>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle2" fontWeight="bold">Members</Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: 0 }}>
+                <MemberSelector
+                    members={state.allMemberName}
+                    dispatch={dispatch}
+                    favourites={state.favourites}
+                    memberInfo={state.memberInfo}
+                    selectedMembers={state.selectedMembers}
+                />
+            </AccordionDetails>
+        </Accordion>
 
-            <Accordion disableGutters elevation={0} square>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography variant="subtitle2" fontWeight="bold">Favourites</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <FavouritesData dispatch={dispatch} />
-                </AccordionDetails>
-            </Accordion>
+        <Accordion disableGutters elevation={0} square>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle2" fontWeight="bold">Event Data</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+                <EventData dispatch={dispatch} />
+                <FormControlLabel
+                    sx={{ mt: 1, ml: 0 }}
+                    control={
+                        <Switch
+                            checked={state.inclusiveEndDate}
+                            onChange={() => dispatch({ type: DISPATCH_ACTION.TOGGLE_INCLUSIVE_END })}
+                            size="small"
+                        />
+                    }
+                    label={<Typography variant="body2">End date is inclusive</Typography>}
+                />
+                {state.eventErrors.length > 0 && (
+                    <Alert severity="warning" sx={{ mt: 1 }}>
+                        {state.eventErrors.map((e, i) => (
+                            <div key={i}>{e}</div>
+                        ))}
+                    </Alert>
+                )}
+            </AccordionDetails>
+        </Accordion>
 
-            <Accordion disableGutters elevation={0} square>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography variant="subtitle2" fontWeight="bold">CSV Import</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <CSVConverter dispatch={dispatch} />
-                </AccordionDetails>
-            </Accordion>
-        </div>
-    </>
-);
+        <Accordion disableGutters elevation={0} square>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle2" fontWeight="bold">Favourites</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+                <FavouritesData dispatch={dispatch} />
+            </AccordionDetails>
+        </Accordion>
+
+        <Accordion disableGutters elevation={0} square>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle2" fontWeight="bold">CSV Import</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+                <CSVConverter dispatch={dispatch} />
+            </AccordionDetails>
+        </Accordion>
+    </div>
+)
 
 export const MainPage = () => {
     const [state, dispatch] = useReducer(mainReducerFn, {}, () => {
@@ -241,6 +250,9 @@ export const MainPage = () => {
 
     const [currentView, setCurrentView] = useState(VIEW_TYPE.CALENDAR)
     const [drawerOpen, setDrawerOpen] = useState(false)
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(
+        () => window.localStorage.getItem(LOCALSTORAGE_KEY_SIDEBAR) === 'true'
+    )
     const isMobile = useMediaQuery('(max-width: 768px)')
 
     useEffect(() => {
@@ -258,6 +270,13 @@ export const MainPage = () => {
     useEffect(() => {
         window.localStorage.setItem(LOCALSTORAGE_KEY.SHOW_COMMENTS, String(state.showComments))
     }, [state.showComments])
+
+    useEffect(() => {
+        window.localStorage.setItem(LOCALSTORAGE_KEY_SIDEBAR, String(sidebarCollapsed))
+        // FullCalendar sizes itself once — fire a resize after the CSS transition (0.2s) completes
+        const t = setTimeout(() => window.dispatchEvent(new Event('resize')), 220)
+        return () => clearTimeout(t)
+    }, [sidebarCollapsed])
 
     const mainContent = currentView === VIEW_TYPE.CALENDAR ? (
         <Calendar events={state.events} showWeekends={state.showWeekends} showComments={state.showComments} />
@@ -299,12 +318,20 @@ export const MainPage = () => {
                     onClose={() => setDrawerOpen(false)}
                     PaperProps={{ className: 'mobile-drawer-paper' }}
                 >
-                    <SidebarContent
+                    <div className="sidebar-header">
+                        <Typography variant="h6" fontWeight="bold" noWrap sx={{ flex: 1, minWidth: 0 }}>
+                            Absence Calendar
+                        </Typography>
+                        <IconButton size="small" onClick={() => setDrawerOpen(false)} sx={{ ml: 1, flexShrink: 0 }}>
+                            <CloseIcon />
+                        </IconButton>
+                    </div>
+                    <SidebarSections
                         state={state}
                         dispatch={dispatch}
                         currentView={currentView}
                         setCurrentView={setCurrentView}
-                        onClose={() => setDrawerOpen(false)}
+                        onViewChange={() => setDrawerOpen(false)}
                     />
                 </Drawer>
             </div>
@@ -317,13 +344,54 @@ export const MainPage = () => {
                 {mainContent}
             </div>
 
-            <aside className="sidebar">
-                <SidebarContent
-                    state={state}
-                    dispatch={dispatch}
-                    currentView={currentView}
-                    setCurrentView={setCurrentView}
-                />
+            <aside className={`sidebar${sidebarCollapsed ? ' sidebar--collapsed' : ''}`}>
+                {sidebarCollapsed ? (
+                    <div className="sidebar-icon-strip">
+                        <Tooltip title="Expand menu" placement="left">
+                            <IconButton
+                                size="small"
+                                onClick={() => setSidebarCollapsed(false)}
+                                className="sidebar-icon-btn"
+                            >
+                                <ChevronLeftIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                        {SECTION_ICONS.map(({ label, icon }) => (
+                            <Tooltip key={label} title={label} placement="left">
+                                <IconButton
+                                    size="small"
+                                    onClick={() => setSidebarCollapsed(false)}
+                                    className="sidebar-icon-btn"
+                                >
+                                    {icon}
+                                </IconButton>
+                            </Tooltip>
+                        ))}
+                    </div>
+                ) : (
+                    <>
+                        <div className="sidebar-header">
+                            <Typography variant="h6" fontWeight="bold" noWrap sx={{ flex: 1, minWidth: 0 }}>
+                                Absence Calendar
+                            </Typography>
+                            <Tooltip title="Collapse menu" placement="left">
+                                <IconButton
+                                    size="small"
+                                    onClick={() => setSidebarCollapsed(true)}
+                                    sx={{ ml: 1, flexShrink: 0 }}
+                                >
+                                    <ChevronRightIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                        </div>
+                        <SidebarSections
+                            state={state}
+                            dispatch={dispatch}
+                            currentView={currentView}
+                            setCurrentView={setCurrentView}
+                        />
+                    </>
+                )}
             </aside>
         </div>
     )
