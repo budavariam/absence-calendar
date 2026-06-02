@@ -30,6 +30,7 @@ const IMPORTER_ACTION = {
     SET_START_FIELD: 'SET_START_FIELD',
     SET_END_FIELD: 'SET_END_FIELD',
     SET_TENTATIVE_FIELD: 'SET_TENTATIVE_FIELD',
+    SET_COMMENT_FIELD: 'SET_COMMENT_FIELD',
     SET_DATE_FORMAT: 'SET_DATE_FORMAT',
     TOGGLE_INCLUDE_END: 'TOGGLE_INCLUDE_END',
 }
@@ -50,6 +51,8 @@ const importerReducer = (state, action) => {
             return { ...state, endDateField: action.value }
         case IMPORTER_ACTION.SET_TENTATIVE_FIELD:
             return { ...state, tentativeField: action.value }
+        case IMPORTER_ACTION.SET_COMMENT_FIELD:
+            return { ...state, commentField: action.value }
         case IMPORTER_ACTION.SET_DATE_FORMAT:
             return { ...state, dateFormat: action.value }
         case IMPORTER_ACTION.TOGGLE_INCLUDE_END:
@@ -68,6 +71,7 @@ export const CSVConverter = ({ dispatch }) => {
         startDateField: '',
         endDateField: '',
         tentativeField: '',
+        commentField: '',
         dateFormat: 'DD-MMM-YYYY',
         includeEndDate: true,
     })
@@ -162,9 +166,12 @@ export const CSVConverter = ({ dispatch }) => {
         const addDayToDate = (dateStr) => {
             if (!dateStr) return '';
             try {
-                const date = new Date(dateStr);
+                const date = new Date(dateStr + 'T00:00:00');
                 date.setDate(date.getDate() + 1);
-                return date.toISOString().split('T')[0];
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                const d = String(date.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
             } catch {
                 return dateStr;
             }
@@ -187,6 +194,11 @@ export const CSVConverter = ({ dispatch }) => {
             if (uiState.tentativeField) {
                 const idxTentative = headers.indexOf(uiState.tentativeField);
                 entry.tentative = parseTentative(cols[idxTentative]?.trim());
+            }
+            if (uiState.commentField) {
+                const idxComment = headers.indexOf(uiState.commentField);
+                const commentVal = cols[idxComment]?.trim();
+                if (commentVal) entry.comment = commentVal;
             }
             return entry;
         }).filter(r => r.who && r.start && r.end);
@@ -326,6 +338,16 @@ export const CSVConverter = ({ dispatch }) => {
                         fullWidth
                     >
                         <MenuItem value=""><em>Tentative field (optional — true/yes/1)</em></MenuItem>
+                        {headers.map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
+                    </Select>
+                    <Select
+                        value={uiState.commentField}
+                        onChange={(e) => uiDispatch({ type: IMPORTER_ACTION.SET_COMMENT_FIELD, value: e.target.value })}
+                        displayEmpty
+                        size="small"
+                        fullWidth
+                    >
+                        <MenuItem value=""><em>Comment field (optional — shown on hover)</em></MenuItem>
                         {headers.map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
                     </Select>
                 </Box>

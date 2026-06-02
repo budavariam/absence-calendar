@@ -25,7 +25,10 @@ const validateDate = (dateStr) => {
 const addOneDay = (dateStr) => {
     const d = new Date(dateStr + 'T00:00:00')
     d.setDate(d.getDate() + 1)
-    return d.toISOString().split('T')[0]
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
 }
 
 export const calculateMemberInfo = (allMembers) => {
@@ -65,6 +68,7 @@ export const calculateEvents = (eventData, memberInfo, selectedMembers, inclusiv
         if (startErr || endErr) return { valid: false }
 
         const tentative = curr.tentative === true
+        const comment = curr.comment || ''
 
         return {
             title: name,
@@ -73,6 +77,8 @@ export const calculateEvents = (eventData, memberInfo, selectedMembers, inclusiv
             color: info.color,
             textColor: 'white',
             tentative,
+            comment,
+            extendedProps: { comment },
             classNames: tentative ? ['tentative'] : [],
             valid: true,
         }

@@ -72,6 +72,9 @@ const mainReducerFn = (state, action) => {
             const { events, errors } = calculateEvents(state.rawData, state.memberInfo, state.selectedMembers, inclusiveEndDate)
             return { ...state, inclusiveEndDate, events, eventErrors: errors }
         }
+        case DISPATCH_ACTION.TOGGLE_SHOW_COMMENTS: {
+            return { ...state, showComments: !state.showComments }
+        }
         default:
             return state
     }
@@ -108,6 +111,7 @@ export const MainPage = () => {
 
         const showWeekends = (window.localStorage.getItem(LOCALSTORAGE_KEY.SHOW_WEEKENDS) || LOCALSTORAGE_DEFAULT.SHOW_WEEKENDS) === 'true'
         const inclusiveEndDate = (window.localStorage.getItem(LOCALSTORAGE_KEY.INCLUSIVE_END_DATE) || LOCALSTORAGE_DEFAULT.INCLUSIVE_END_DATE) === 'true'
+        const showComments = (window.localStorage.getItem(LOCALSTORAGE_KEY.SHOW_COMMENTS) || LOCALSTORAGE_DEFAULT.SHOW_COMMENTS) === 'true'
 
         const { events, errors } = calculateEvents(rawEventData, memberInfo, selectedMembers, inclusiveEndDate)
 
@@ -122,6 +126,7 @@ export const MainPage = () => {
             anonMapping: rawAnonMapping,
             showWeekends,
             inclusiveEndDate,
+            showComments,
         }
     })
 
@@ -139,11 +144,15 @@ export const MainPage = () => {
         window.localStorage.setItem(LOCALSTORAGE_KEY.INCLUSIVE_END_DATE, String(state.inclusiveEndDate))
     }, [state.inclusiveEndDate])
 
+    useEffect(() => {
+        window.localStorage.setItem(LOCALSTORAGE_KEY.SHOW_COMMENTS, String(state.showComments))
+    }, [state.showComments])
+
     return (
         <div className="mainPage">
             <div className="main-content">
                 {currentView === VIEW_TYPE.CALENDAR ? (
-                    <Calendar events={state.events} showWeekends={state.showWeekends} />
+                    <Calendar events={state.events} showWeekends={state.showWeekends} showComments={state.showComments} />
                 ) : (
                     <TableView
                         events={state.events}
@@ -151,6 +160,7 @@ export const MainPage = () => {
                         selectedMembers={state.selectedMembers}
                         allMemberName={state.allMemberName}
                         showWeekends={state.showWeekends}
+                        showComments={state.showComments}
                     />
                 )}
             </div>
@@ -177,6 +187,17 @@ export const MainPage = () => {
                                 <ToggleButton value={VIEW_TYPE.TABLE}>Table</ToggleButton>
                             </ToggleButtonGroup>
                             <WeekendToggle dispatch={dispatch} showWeekends={state.showWeekends} />
+                            <FormControlLabel
+                                sx={{ mt: 0.5, ml: 0 }}
+                                control={
+                                    <Switch
+                                        checked={state.showComments}
+                                        onChange={() => dispatch({ type: DISPATCH_ACTION.TOGGLE_SHOW_COMMENTS })}
+                                        size="small"
+                                    />
+                                }
+                                label={<Typography variant="body2">Show comments on events</Typography>}
+                            />
                         </AccordionDetails>
                     </Accordion>
 

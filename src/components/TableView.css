@@ -7,6 +7,109 @@
     padding: 8px;
 }
 
+/* ── Toolbar ── */
+.table-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 2px 10px;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+}
+
+.toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+}
+
+.toolbar-center {
+    font-weight: 700;
+    font-size: 1.1em;
+    white-space: nowrap;
+    flex: 0 0 auto;
+}
+
+.toolbar-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    flex: 1;
+}
+
+/* Range buttons — dark filled style like FullCalendar */
+.toolbar-range-group.MuiToggleButtonGroup-root .MuiToggleButton-root {
+    background: #2c3e50;
+    color: #fff;
+    border-color: #2c3e50;
+    text-transform: none;
+    font-size: 13px;
+    padding: 3px 10px;
+    line-height: 1.5;
+}
+.toolbar-range-group.MuiToggleButtonGroup-root .MuiToggleButton-root:hover {
+    background: #1a252f;
+}
+.toolbar-range-group.MuiToggleButtonGroup-root .MuiToggleButton-root.Mui-selected {
+    background: #3d566e;
+    color: #fff;
+    outline: 2px solid rgba(255,255,255,0.25) inset;
+}
+
+/* Pivot toggle — dark, consistent with range group */
+.toolbar-pivot-btn.MuiToggleButton-root {
+    background: #2c3e50;
+    color: #fff;
+    border-color: #2c3e50;
+    padding: 3px 8px;
+}
+.toolbar-pivot-btn.MuiToggleButton-root:hover {
+    background: #1a252f;
+}
+.toolbar-pivot-btn.pivot-active.MuiToggleButton-root {
+    background: #3d566e;
+    color: #fff;
+}
+
+/* Today button — lighter outlined style */
+.toolbar-today-btn.MuiButton-root {
+    background: #e8e8e8;
+    color: #333;
+    border: 1px solid #bbb;
+    text-transform: none;
+    font-size: 13px;
+    padding: 3px 10px;
+    min-width: 0;
+    line-height: 1.5;
+    border-radius: 4px;
+}
+.toolbar-today-btn.MuiButton-root:hover {
+    background: #d5d5d5;
+}
+
+/* Prev / Next nav grouped together */
+.toolbar-nav-group {
+    display: flex;
+    align-items: center;
+    background: #2c3e50;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.toolbar-nav-btn.MuiIconButton-root {
+    color: #fff;
+    border-radius: 0;
+    padding: 4px 6px;
+}
+.toolbar-nav-btn.MuiIconButton-root:hover {
+    background: #1a252f;
+}
+
+/* ── Table ── */
 .table-scroll {
     overflow: auto;
     flex: 1;
@@ -27,22 +130,36 @@
 
 .col-member-header {
     position: sticky;
+    top: 0;
     left: 0;
     background: white;
-    z-index: 2;
+    z-index: 4;
     min-width: 160px;
     text-align: left;
 }
 
 .col-date-header {
+    position: sticky;
+    top: 0;
     min-width: 48px;
     text-align: center;
     font-size: 11px;
     background: white;
+    z-index: 3;
 }
 
 .col-date-header.weekend {
     color: #d32f2f;
+}
+
+.col-date-header.month-even {
+    background-color: #eef2f7;
+}
+
+.col-date-header.today {
+    background-color: var(--fc-today-bg-color, rgba(255, 220, 40, 0.15));
+    color: inherit;
+    font-weight: 700;
 }
 
 .col-member-name {
@@ -54,9 +171,26 @@
     font-weight: 500;
 }
 
+.col-member-name.month-even {
+    background-color: #eef2f7;
+}
+
+.col-member-name.today {
+    background-color: var(--fc-today-bg-color, rgba(255, 220, 40, 0.15));
+}
+
 .col-day-cell {
     min-width: 30px;
     height: 28px;
+    vertical-align: top;
+}
+
+.col-day-cell.month-even {
+    background-color: #eef2f7;
+}
+
+.col-day-cell.today {
+    background-color: var(--fc-today-bg-color, rgba(255, 220, 40, 0.15));
 }
 
 .col-day-cell.tentative {
@@ -68,4 +202,26 @@
         rgba(255, 255, 255, 0.4) 8px
     );
     opacity: 0.75;
+}
+
+.weekend-row .col-member-name {
+    color: #d32f2f;
+}
+
+/* Comment label inside a cell */
+.event-comment {
+    display: block;
+    font-size: 9px;
+    line-height: 1.3;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 2px;
+    padding: 0 3px;
+    margin-top: 1px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    pointer-events: none;
 }
