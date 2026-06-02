@@ -23,6 +23,8 @@
 }
 
 .sidebar-header {
+    display: flex;
+    align-items: center;
     padding: 12px 16px;
     border-bottom: 1px solid #e0e0e0;
     flex-shrink: 0;
@@ -61,4 +63,42 @@
 .sidebar-sections .MuiAccordionDetails-root {
     padding: 8px 12px 12px;
     background: white;
+}
+
+/* ── Mobile layout ────────────────────────────── */
+.mainPage--mobile {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+    grid-template-columns: unset;
+    grid-template-rows: unset;
+}
+
+.mobile-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px 0 16px;
+    height: 52px;
+    flex-shrink: 0;
+    background: #2c3e50;
+    color: white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    z-index: 100;
+}
+
+.mobile-drawer-paper {
+    width: min(320px, 90vw) !important;
+    display: flex;
+    flex-direction: column;
+}
+
+.mobile-drawer-paper .sidebar-header {
+    padding: 10px 12px 10px 16px;
+}
+
+.mobile-drawer-paper .sidebar-sections {
+    flex: 1;
+    overflow-y: auto;
 }

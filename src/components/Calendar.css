@@ -14,6 +14,25 @@
     background: white;
     padding-bottom: 6px;
 }
+
+@media (max-width: 480px) {
+    .calendar {
+        padding: 4px;
+    }
+    .calendar .fc-header-toolbar {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    .calendar .fc-toolbar-chunk {
+        display: flex;
+        justify-content: center;
+    }
+    /* Stack: views top, title middle, today+nav bottom */
+    .calendar .fc-header-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
 .fc-day-sat,
 .fc-day-sun {
     background-color: #e5e5e5 !important;

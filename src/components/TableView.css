@@ -18,6 +18,7 @@
     top: 0;
     background: white;
     z-index: 10;
+    flex-wrap: wrap;
 }
 
 .toolbar-left {
@@ -25,6 +26,7 @@
     align-items: center;
     gap: 6px;
     flex: 1;
+    min-width: 0;
 }
 
 .toolbar-center {
@@ -32,6 +34,10 @@
     font-size: 1.1em;
     white-space: nowrap;
     flex: 0 0 auto;
+    order: -1;
+    width: 100%;
+    text-align: center;
+    padding-bottom: 2px;
 }
 
 .toolbar-right {
@@ -40,6 +46,18 @@
     justify-content: flex-end;
     gap: 4px;
     flex: 1;
+    min-width: 0;
+}
+
+@media (min-width: 540px) {
+    .toolbar-center {
+        order: 0;
+        width: auto;
+        padding-bottom: 0;
+    }
+    .table-toolbar {
+        flex-wrap: nowrap;
+    }
 }
 
 /* Range buttons — dark filled style like FullCalendar */
