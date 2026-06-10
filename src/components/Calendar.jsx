@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import "./Calendar.css"
 
 import '@fullcalendar/react/dist/vdom';
@@ -9,7 +9,27 @@ import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
 import rrulePlugin from "@fullcalendar/rrule"
 
-export function Calendar({ events, showWeekends, showComments }) {
+export function Calendar({ events, showWeekends, showComments, openGlobalWeekends }) {
+    const [viewRange, setViewRange] = useState(null);
+
+    // Only force weekends open when a @-event actually lands on a weekend
+    // within the currently rendered date range
+    const hasGlobalWeekendInRange = useMemo(() => {
+        if (!openGlobalWeekends || showWeekends || !viewRange) return false;
+        for (const event of events) {
+            if (!event.global) continue;
+            const start = new Date(event.start + 'T00:00:00');
+            const end = new Date(event.end + 'T00:00:00');
+            for (const d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
+                const day = d.getDay();
+                if ((day === 0 || day === 6) && d >= viewRange.start && d < viewRange.end) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }, [events, openGlobalWeekends, showWeekends, viewRange]);
+
     return (
         <div className="calendar">
             <FullCalendar
@@ -17,7 +37,8 @@ export function Calendar({ events, showWeekends, showComments }) {
                 locale="en"
                 themeSystem="Simplex"
                 initialView="dayGridMonth"
-                weekends={showWeekends}
+                weekends={showWeekends || hasGlobalWeekendInRange}
+                datesSet={(info) => setViewRange({ start: info.start, end: info.end })}
                 eventTimeFormat={{ hour: 'numeric', minute: '2-digit' }}
                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin, rrulePlugin]}
                 events={events}

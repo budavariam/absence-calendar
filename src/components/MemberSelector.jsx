@@ -17,6 +17,7 @@ import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import Star from '@mui/icons-material/Star';
 import StarOutline from '@mui/icons-material/StarOutline';
+import ClearAllIcon from '@mui/icons-material/ClearAll';
 
 const FILTER_ACTION = {
     SET_NAME: 'SET_NAME',
@@ -136,6 +137,14 @@ export function MemberSelector({ members, selectedMembers, favourites, memberInf
                     onChange={(e) => filterDispatch({ type: FILTER_ACTION.SET_NAME, value: e.target.value })}
                     endAdornment={
                         <InputAdornment position="end">
+                            <IconButton
+                                title="Toggle select all/none members"
+                                aria-label="Toggle select all/none members"
+                                onClick={() => dispatch({ type: DISPATCH_ACTION.CLEAR_ALL_MEMBERS, filteredMembers })}
+                                onMouseDown={handleMouseDown}
+                            >
+                                <ClearAllIcon />
+                            </IconButton>
                             <IconButton
                                 title="Toggle member visibility"
                                 aria-label="Toggle member visibility"

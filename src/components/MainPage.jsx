@@ -58,6 +58,19 @@ const mainReducerFn = (state, action) => {
             const { events, errors } = calculateEvents(state.rawData, state.memberInfo, newSelection, state.inclusiveEndDate)
             return { ...state, selectedMembers: newSelection, events, eventErrors: errors }
         }
+        case DISPATCH_ACTION.CLEAR_ALL_MEMBERS: {
+            const visibleMembers = action.filteredMembers || state.allMemberName;
+            const areAnyVisibleSelected = visibleMembers.some(m => state.selectedMembers.has(m));
+            let newSelection = new Set(state.selectedMembers);
+
+            if (!areAnyVisibleSelected) {
+                visibleMembers.forEach(m => newSelection.add(m));
+            } else {
+                visibleMembers.forEach(m => newSelection.delete(m));
+            }
+            const { events, errors } = calculateEvents(state.rawData, state.memberInfo, newSelection, state.inclusiveEndDate)
+            return { ...state, selectedMembers: newSelection, events, eventErrors: errors }
+        }
         case DISPATCH_ACTION.UPDATE_FAVOURITES: {
             try {
                 const tgt = anonimizeNames(JSON.parse(action.value), state.anonMapping)
@@ -89,6 +102,9 @@ const mainReducerFn = (state, action) => {
         }
         case DISPATCH_ACTION.TOGGLE_SHOW_COMMENTS: {
             return { ...state, showComments: !state.showComments }
+        }
+        case DISPATCH_ACTION.TOGGLE_OPEN_GLOBAL_WEEKENDS: {
+            return { ...state, openGlobalWeekends: !state.openGlobalWeekends }
         }
         default:
             return state
@@ -125,6 +141,17 @@ const SidebarSections = ({ state, dispatch, currentView, setCurrentView, onViewC
                     <ToggleButton value={VIEW_TYPE.TABLE}>Table</ToggleButton>
                 </ToggleButtonGroup>
                 <WeekendToggle dispatch={dispatch} showWeekends={state.showWeekends} />
+                <FormControlLabel
+                    sx={{ mt: 0.5, ml: 0 }}
+                    control={
+                        <Switch
+                            checked={state.openGlobalWeekends}
+                            onChange={() => dispatch({ type: DISPATCH_ACTION.TOGGLE_OPEN_GLOBAL_WEEKENDS })}
+                            size="small"
+                        />
+                    }
+                    label={<Typography variant="body2">@ events open weekends (bridge days)</Typography>}
+                />
                 <FormControlLabel
                     sx={{ mt: 0.5, ml: 0 }}
                     control={
@@ -230,6 +257,7 @@ export const MainPage = () => {
         const showWeekends = (window.localStorage.getItem(LOCALSTORAGE_KEY.SHOW_WEEKENDS) || LOCALSTORAGE_DEFAULT.SHOW_WEEKENDS) === 'true'
         const inclusiveEndDate = (window.localStorage.getItem(LOCALSTORAGE_KEY.INCLUSIVE_END_DATE) || LOCALSTORAGE_DEFAULT.INCLUSIVE_END_DATE) === 'true'
         const showComments = (window.localStorage.getItem(LOCALSTORAGE_KEY.SHOW_COMMENTS) || LOCALSTORAGE_DEFAULT.SHOW_COMMENTS) === 'true'
+        const openGlobalWeekends = (window.localStorage.getItem(LOCALSTORAGE_KEY.OPEN_GLOBAL_WEEKENDS) || LOCALSTORAGE_DEFAULT.OPEN_GLOBAL_WEEKENDS) === 'true'
 
         const { events, errors } = calculateEvents(rawEventData, memberInfo, selectedMembers, inclusiveEndDate)
 
@@ -245,6 +273,7 @@ export const MainPage = () => {
             showWeekends,
             inclusiveEndDate,
             showComments,
+            openGlobalWeekends,
         }
     })
 
@@ -272,6 +301,10 @@ export const MainPage = () => {
     }, [state.showComments])
 
     useEffect(() => {
+        window.localStorage.setItem(LOCALSTORAGE_KEY.OPEN_GLOBAL_WEEKENDS, String(state.openGlobalWeekends))
+    }, [state.openGlobalWeekends])
+
+    useEffect(() => {
         window.localStorage.setItem(LOCALSTORAGE_KEY_SIDEBAR, String(sidebarCollapsed))
         // FullCalendar sizes itself once — fire a resize after the CSS transition (0.2s) completes
         const t = setTimeout(() => window.dispatchEvent(new Event('resize')), 220)
@@ -279,7 +312,7 @@ export const MainPage = () => {
     }, [sidebarCollapsed])
 
     const mainContent = currentView === VIEW_TYPE.CALENDAR ? (
-        <Calendar events={state.events} showWeekends={state.showWeekends} showComments={state.showComments} />
+        <Calendar events={state.events} showWeekends={state.showWeekends} showComments={state.showComments} openGlobalWeekends={state.openGlobalWeekends} />
     ) : (
         <TableView
             events={state.events}
@@ -288,6 +321,7 @@ export const MainPage = () => {
             allMemberName={state.allMemberName}
             showWeekends={state.showWeekends}
             showComments={state.showComments}
+            openGlobalWeekends={state.openGlobalWeekends}
         />
     )
 

@@ -39,7 +39,7 @@ function formatTitle(dates) {
     return `${startStr} – ${endStr}, ${year}`;
 }
 
-export function TableView({ events, memberInfo, selectedMembers, allMemberName, showWeekends, showComments }) {
+export function TableView({ events, memberInfo, selectedMembers, allMemberName, showWeekends, showComments, openGlobalWeekends }) {
     const [rangeType, setRangeType] = useState('month');
     const [offset, setOffset] = useState(0);
     const [pivoted, setPivoted] = useState(false);
@@ -52,22 +52,44 @@ export function TableView({ events, memberInfo, selectedMembers, allMemberName, 
 
     const todayStr = useMemo(() => toDateStr(startOfToday), [startOfToday]);
 
+    // dateStr -> array of @-event names on that date
+    const globalDatesMap = useMemo(() => {
+        const map = {};
+        for (const event of events) {
+            if (!event.global) continue;
+            // iterate every date in the event range
+            const start = new Date(event.start + 'T00:00:00');
+            const end = new Date(event.end + 'T00:00:00');
+            for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
+                const ds = toDateStr(d);
+                if (!map[ds]) map[ds] = [];
+                map[ds].push(event.title);
+            }
+        }
+        return map;
+    }, [events]);
+
     const dates = useMemo(() => {
         const result = [];
         const rangeDays = RANGE_DAYS[rangeType];
         for (let i = 0; i < rangeDays; i++) {
             const d = new Date(startOfToday);
             d.setDate(startOfToday.getDate() + offset + i);
-            if (!showWeekends && isWeekend(d)) continue;
+            const weekend = isWeekend(d);
+            if (!showWeekends && weekend) {
+                // include weekend if it has a global @-event and bridge-day toggle is on
+                if (!openGlobalWeekends || !globalDatesMap[toDateStr(d)]) continue;
+            }
             result.push(d);
         }
         return result;
-    }, [startOfToday, rangeType, offset, showWeekends]);
+    }, [startOfToday, rangeType, offset, showWeekends, openGlobalWeekends, globalDatesMap]);
 
     // memberName -> [{ start, end, colorHex, tentative, comment }]
     const memberEvents = useMemo(() => {
         const lookup = {};
         for (const event of events) {
+            if (event.global) continue;   // global events handled separately
             if (!lookup[event.title]) lookup[event.title] = [];
             lookup[event.title].push({
                 start: event.start,
@@ -99,13 +121,15 @@ export function TableView({ events, memberInfo, selectedMembers, allMemberName, 
         const weekend = isWeekend(d);
         const isToday = toDateStr(d) === todayStr;
         const monthClass = d.getMonth() % 2 === 0 ? 'month-even' : 'month-odd';
+        const globalNames = globalDatesMap[toDateStr(d)];
         return (
             <th
                 key={toDateStr(d)}
-                className={`col-date-header ${monthClass}${weekend ? ' weekend' : ''}${isToday ? ' today' : ''}`}
+                className={`col-date-header ${monthClass}${weekend ? ' weekend' : ''}${isToday ? ' today' : ''}${globalNames ? ' global-day' : ''}`}
             >
                 <div>{MONTH_NAMES[d.getMonth()]} {d.getDate()}</div>
                 <div>{DAY_NAMES[d.getDay()]}</div>
+                {globalNames && <div className="global-day-label">{globalNames.join(', ')}</div>}
             </th>
         );
     }
@@ -116,11 +140,12 @@ export function TableView({ events, memberInfo, selectedMembers, allMemberName, 
         const weekend = isWeekend(d);
         const isToday = dateStr === todayStr;
         const monthClass = d.getMonth() % 2 === 0 ? 'month-even' : 'month-odd';
+        const isGlobalDay = !!globalDatesMap[dateStr];
         return (
             <td
                 key={dateStr}
                 title={vacEvent?.comment || undefined}
-                className={`col-day-cell ${monthClass}${weekend ? ' weekend' : ''}${vacEvent?.tentative ? ' tentative' : ''}${isToday ? ' today' : ''}`}
+                className={`col-day-cell ${monthClass}${weekend ? ' weekend' : ''}${vacEvent?.tentative ? ' tentative' : ''}${isToday ? ' today' : ''}${isGlobalDay && !vacEvent ? ' global-day' : ''}`}
                 style={vacEvent ? { backgroundColor: vacEvent.colorHex } : {}}
             >
                 {showComments && vacEvent?.comment && (
@@ -231,11 +256,13 @@ export function TableView({ events, memberInfo, selectedMembers, allMemberName, 
                                 const weekend = isWeekend(d);
                                 const isToday = dateStr === todayStr;
                                 const monthClass = d.getMonth() % 2 === 0 ? 'month-even' : 'month-odd';
+                                const globalNames = globalDatesMap[dateStr];
                                 return (
                                     <tr key={dateStr} className={weekend ? 'weekend-row' : ''}>
-                                        <td className={`col-member-name ${monthClass}${isToday ? ' today' : ''}`}>
+                                        <td className={`col-member-name ${monthClass}${isToday ? ' today' : ''}${globalNames ? ' global-day' : ''}`}>
                                             <div>{MONTH_NAMES[d.getMonth()]} {d.getDate()}</div>
                                             <div style={{ fontSize: 10, color: '#888' }}>{DAY_NAMES[d.getDay()]}</div>
+                                            {globalNames && <div className="global-day-label">{globalNames.join(', ')}</div>}
                                         </td>
                                         {visibleMembers.map(member => {
                                             const vacEvent = getVacationEvent(member, dateStr);
@@ -243,7 +270,7 @@ export function TableView({ events, memberInfo, selectedMembers, allMemberName, 
                                                 <td
                                                     key={member}
                                                     title={vacEvent?.comment || undefined}
-                                                    className={`col-day-cell ${monthClass}${vacEvent?.tentative ? ' tentative' : ''}${isToday ? ' today' : ''}`}
+                                                    className={`col-day-cell ${monthClass}${vacEvent?.tentative ? ' tentative' : ''}${isToday ? ' today' : ''}${globalNames && !vacEvent ? ' global-day' : ''}`}
                                                     style={vacEvent ? { backgroundColor: vacEvent.colorHex } : {}}
                                                 >
                                                     {showComments && vacEvent?.comment && (

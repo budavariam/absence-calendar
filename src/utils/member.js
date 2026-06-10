@@ -1,5 +1,4 @@
 import distinctColors from 'distinct-colors'
-// import chroma from "chroma-js";
 
 export const junk = " - OoO"
 export const formatName = (memberName) => memberName.replace(junk, "")
@@ -31,6 +30,10 @@ const addOneDay = (dateStr) => {
     return `${y}-${m}-${day}`;
 }
 
+// Global (@) events use a fixed holiday colour
+const GLOBAL_EVENT_HEX = '#e57373'
+const GLOBAL_COLOR_OBJ = { hex: () => GLOBAL_EVENT_HEX, toString: () => GLOBAL_EVENT_HEX }
+
 export const calculateMemberInfo = (allMembers) => {
     const palette = distinctColors({
         count: allMembers.length,
@@ -50,10 +53,13 @@ export const calculateEvents = (eventData, memberInfo, selectedMembers, inclusiv
 
     const events = eventData.map((curr) => {
         const name = formatName(curr.who)
-        if (!selectedMembers.has(name)) return { valid: false }
+        const isGlobal = name.startsWith('@')
 
-        const info = memberInfo[name]
-        if (!info) {
+        // Regular events are filtered by selection; global (@) events always show
+        if (!isGlobal && !selectedMembers.has(name)) return { valid: false }
+
+        const info = isGlobal ? null : memberInfo[name]
+        if (!isGlobal && !info) {
             errorSet.add(`No color info for member "${name}"`)
             return { valid: false }
         }
@@ -69,16 +75,20 @@ export const calculateEvents = (eventData, memberInfo, selectedMembers, inclusiv
 
         const tentative = curr.tentative === true
         const comment = curr.comment || ''
+        const color = isGlobal ? GLOBAL_COLOR_OBJ : info.color
 
         return {
             title: name,
             start: startDate,
             end: inclusiveEndDate ? addOneDay(endDate) : endDate,
-            color: info.color,
+            color,
             textColor: 'white',
             tentative,
             comment,
-            extendedProps: { comment },
+            global: isGlobal,
+            // FullCalendar: render as background colour swatch for global events
+            display: isGlobal ? 'background' : undefined,
+            extendedProps: { comment, global: isGlobal },
             classNames: tentative ? ['tentative'] : [],
             valid: true,
         }
@@ -90,5 +100,5 @@ export const calculateEvents = (eventData, memberInfo, selectedMembers, inclusiv
 export const calculateMembers = (eventData) => {
     return [...new Set(eventData.map((event) => {
         return formatName(event.who)
-    }))].sort((a, b) => a.localeCompare(b))
+    }))].filter(name => !name.startsWith('@')).sort((a, b) => a.localeCompare(b))
 }

@@ -16,7 +16,7 @@ export const WeekendToggle = ({ dispatch, showWeekends }) => {
             }
             label={
                 <Typography variant="body2">
-                    {showWeekends ? 'Show weekends' : 'Hide weekends'}
+                    Show weekends
                 </Typography>
             }
         />

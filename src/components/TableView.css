@@ -226,6 +226,34 @@
     color: #d32f2f;
 }
 
+/* Global (@) event days */
+.col-date-header.global-day {
+    background-color: #ffcdd2;
+    color: #b71c1c;
+}
+
+.col-date-header.global-day.weekend {
+    color: #b71c1c;
+}
+
+.global-day-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: #b71c1c;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.col-member-name.global-day {
+    background-color: #ffcdd2;
+}
+
+.col-day-cell.global-day {
+    background-color: #ffebee;
+}
+
 /* Comment label inside a cell */
 .event-comment {
     display: block;
